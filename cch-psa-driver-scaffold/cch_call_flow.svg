@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 530" width="780" height="530" font-family="Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="780" height="530" fill="#F8F9FA" rx="8"/>
+
+  <!-- Title -->
+  <text x="390" y="28" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1A2E">CCH Call Flow Example: psa_sign_hash</text>
+
+  <!-- ═══════════════════════════════
+       L3: TF-PSA-Crypto
+       Color: E8F4FD / 2196F3 (same as L3 in layer model)
+  ═══════════════════════════════ -->
+  <rect x="20" y="42" width="740" height="70" rx="6" fill="#E8F4FD" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="34" y="62" font-size="10.5" font-weight="bold" fill="#1565C0">(L3) TF-PSA-Crypto</text>
+  <!-- Built-in dashed box -->
+  <rect x="530" y="52" width="210" height="48" rx="4" fill="#FFFFFF" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="635" y="72" text-anchor="middle" font-size="9.5" fill="#1565C0">TF-PSA-Crypto</text>
+  <text x="635" y="86" text-anchor="middle" font-size="9.5" fill="#1565C0">Built-in Crypto lib</text>
+  <!-- PSA API call -->
+  <text x="255" y="72" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1565C0">psa_sign_hash</text>
+  <text x="255" y="88" text-anchor="middle" font-size="9" fill="#555" font-style="italic">(and other PSA Crypto API entry points)</text>
+
+  <!-- Arrow L3 -> L2.5 -->
+  <line x1="255" y1="112" x2="255" y2="133" stroke="#1565C0" stroke-width="2" marker-end="url(#ab)"/>
+
+  <!-- ═══════════════════════════════
+       L2.5: rm_tf_psa_crypto
+       Color: EDE7F6 / 7B1FA2 (same as PSA Shim in layer model)
+  ═══════════════════════════════ -->
+  <rect x="20" y="135" width="740" height="82" rx="6" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="1.5"/>
+  <text x="34" y="155" font-size="10.5" font-weight="bold" fill="#4A148C">(L2.5) rm_tf_psa_crypto  (PSA driver wrapper)</text>
+  <!-- dispatch function -->
+  <text x="255" y="177" text-anchor="middle" font-size="11" font-weight="bold" fill="#4A148C">psa_driver_wrapper_sign_hash</text>
+  <!-- branch labels -->
+  <text x="145" y="202" text-anchor="middle" font-size="9.5" fill="#6A1B9A">alg = RSA, ECDSA, ...</text>
+  <text x="415" y="202" text-anchor="middle" font-size="9.5" fill="#6A1B9A">alg = ML-DSA, ML-KEM</text>
+  <text x="635" y="202" text-anchor="middle" font-size="9" fill="#888" font-style="italic">SW fallback</text>
+
+  <!-- Arrow left branch -> CCH -->
+  <line x1="145" y1="217" x2="145" y2="240" stroke="#6A1B9A" stroke-width="2" marker-end="url(#ap)"/>
+  <!-- Arrow right branch -> PQC -->
+  <line x1="415" y1="217" x2="415" y2="240" stroke="#6A1B9A" stroke-width="2" marker-end="url(#ap)"/>
+  <!-- Arrow SW fallback (dashed) -->
+  <line x1="635" y1="217" x2="635" y2="240" stroke="#9E9E9E" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#ag)"/>
+
+  <!-- ═══════════════════════════════
+       L2: CCH box
+       Color: E8F5E9 / 2E7D32 (same as CCH in layer model)
+  ═══════════════════════════════ -->
+  <rect x="20" y="242" width="310" height="120" rx="6" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2"/>
+  <text x="34" y="262" font-size="10.5" font-weight="bold" fill="#1B5E20">(L2) CCH  /  cch_crypto.h</text>
+  <text x="175" y="286" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#2E7D32">cch_sign_hash</text>
+  <!-- inner arrow CCH -> L1 -->
+  <line x1="175" y1="293" x2="175" y2="308" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- ═══════════════════════════════
+       L1: Engine adapter (Protected Mode)
+       Color: FCE4EC / C62828
+  ═══════════════════════════════ -->
+  <rect x="34" y="310" width="272" height="42" rx="5" fill="#FCE4EC" stroke="#C62828" stroke-width="1.5"/>
+  <text x="170" y="326" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#C62828">(L1) Engine Adapter</text>
+  <text x="170" y="340" text-anchor="middle" font-size="9" fill="#333">rsip_cm_sign_hash  (RSA, ECDSA, ...)</text>
+
+  <!-- ═══════════════════════════════
+       PQC module box
+       Color: FFF8E1 / F57F17 (same as L1 Compat in layer model -
+       PQC is a parallel SW/HW module, not a protected-mode adapter)
+  ═══════════════════════════════ -->
+  <rect x="342" y="242" width="278" height="120" rx="6" fill="#FFF8E1" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="356" y="262" font-size="10.5" font-weight="bold" fill="#E65100">PQC Module</text>
+  <text x="481" y="286" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#E65100">pqc_sign_hash</text>
+  <line x1="481" y1="293" x2="481" y2="308" stroke="#F57F17" stroke-width="1.5" marker-end="url(#ao)"/>
+  <rect x="356" y="310" width="250" height="42" rx="5" fill="#FCE4EC" stroke="#C62828" stroke-width="1.5"/>
+  <text x="481" y="326" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#C62828">R_PQC_MldsaSign*</text>
+  <text x="481" y="340" text-anchor="middle" font-size="9" fill="#333">ML-DSA, ML-KEM  (SW v1; HW future)</text>
+
+  <!-- ═══════════════════════════════
+       SW fallback box (dashed)
+       Color: ECEFF1 / 546E7A (same as L0 driver - it IS the software implementation)
+  ═══════════════════════════════ -->
+  <rect x="632" y="242" width="128" height="120" rx="6" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="696" y="264" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#37474F">TF-PSA-Crypto</text>
+  <text x="696" y="278" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#37474F">Built-in Crypto lib</text>
+  <text x="696" y="300" text-anchor="middle" font-size="8.5" fill="#546E7A">SW-only fallback</text>
+  <text x="696" y="314" text-anchor="middle" font-size="8.5" fill="#546E7A">when no HW support</text>
+  <text x="696" y="328" text-anchor="middle" font-size="8.5" fill="#546E7A">available for the</text>
+  <text x="696" y="342" text-anchor="middle" font-size="8.5" fill="#546E7A">requested algorithm</text>
+
+  <!-- ═══════════════════════════════
+       L0 arrows -> Hardware
+  ═══════════════════════════════ -->
+  <line x1="175" y1="352" x2="175" y2="372" stroke="#546E7A" stroke-width="1.5" marker-end="url(#ags)"/>
+  <line x1="481" y1="352" x2="481" y2="372" stroke="#546E7A" stroke-width="1.5" marker-end="url(#ags)"/>
+
+  <!-- ═══════════════════════════════
+       Hardware bar
+       Color: CFD8DC / 37474F (same as Hardware in layer model)
+  ═══════════════════════════════ -->
+  <rect x="20" y="374" width="600" height="44" rx="6" fill="#CFD8DC" stroke="#37474F" stroke-width="1.5"/>
+  <text x="320" y="392" text-anchor="middle" font-size="10" font-weight="bold" fill="#1A1A2E">Hardware</text>
+  <text x="320" y="408" text-anchor="middle" font-size="9" fill="#37474F">SCE / RSIP engines (RA, RX, RZ)  |  RL78 (SW-only; no HW acceleration)</text>
+
+  <!-- ═══════════════════════════════
+       Static dispatch note
+  ═══════════════════════════════ -->
+  <rect x="20" y="430" width="740" height="32" rx="4" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="390" y="447" text-anchor="middle" font-size="9" fill="#4A148C"><tspan font-weight="bold">Static dispatch: </tspan>No function pointers at the CCH boundary. Algorithm paths selected at compile/link time; unused code eliminated via --gc-sections.</text>
+  <text x="390" y="458" text-anchor="middle" font-size="8.5" fill="#6A1B9A">This ensures dead code elimination works correctly across all toolchains (AC6, GCC, IAR).</text>
+
+  <!-- ═══ Legend ═══ -->
+  <rect x="20" y="474" width="740" height="44" rx="4" fill="none" stroke="#CCCCCC" stroke-width="1"/>
+  <rect x="30" y="483" width="10" height="10" fill="#E8F4FD" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="45" y="492" font-size="8.5" fill="#444">(L3) TF-PSA-Crypto</text>
+  <rect x="148" y="483" width="10" height="10" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="1.5"/>
+  <text x="163" y="492" font-size="8.5" fill="#444">(L2.5) PSA Shim</text>
+  <rect x="258" y="483" width="10" height="10" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2"/>
+  <text x="273" y="492" font-size="8.5" fill="#444">(L2) CCH</text>
+  <rect x="330" y="483" width="10" height="10" fill="#FCE4EC" stroke="#C62828" stroke-width="1.5"/>
+  <text x="345" y="492" font-size="8.5" fill="#444">(L1) Engine Adapter</text>
+  <rect x="450" y="483" width="10" height="10" fill="#FFF8E1" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="465" y="492" font-size="8.5" fill="#444">PQC Module</text>
+  <rect x="545" y="483" width="10" height="10" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="560" y="492" font-size="8.5" fill="#444">SW Fallback</text>
+  <rect x="638" y="483" width="10" height="10" fill="#CFD8DC" stroke="#37474F" stroke-width="1.5"/>
+  <text x="653" y="492" font-size="8.5" fill="#444">Hardware</text>
+
+  <line x1="30" y1="508" x2="50" y2="508" stroke="#1565C0" stroke-width="2"/>
+  <text x="55" y="512" font-size="8.5" fill="#444">HW path</text>
+  <line x1="120" y1="508" x2="140" y2="508" stroke="#9E9E9E" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="145" y="512" font-size="8.5" fill="#444">SW fallback path</text>
+  <line x1="255" y1="508" x2="275" y2="508" stroke="#2E7D32" stroke-width="1.5"/>
+  <text x="280" y="512" font-size="8.5" fill="#444">CCH internal dispatch</text>
+
+  <!-- ═══ Arrow markers ═══ -->
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#1565C0"/></marker>
+    <marker id="ap" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#6A1B9A"/></marker>
+    <marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2E7D32"/></marker>
+    <marker id="ao" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#F57F17"/></marker>
+    <marker id="ags" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#546E7A"/></marker>
+  </defs>
+
+</svg>

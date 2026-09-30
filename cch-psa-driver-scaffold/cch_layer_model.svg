@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 660" width="820" height="660" font-family="Arial, sans-serif">
+  <rect width="820" height="660" fill="#F8F9FA" rx="8"/>
+  <text x="410" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#1A1A2E">Common FSP Crypto HAL - Layer Architecture</text>
+  <text x="220" y="58" text-anchor="middle" font-size="11" fill="#555" font-style="italic">Normal path (via TF-PSA)</text>
+  <text x="660" y="58" text-anchor="middle" font-size="11" fill="#555" font-style="italic">Ultra-constrained (direct CCH)</text>
+  <line x1="430" y1="50" x2="430" y2="590" stroke="#CCCCCC" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2196F3"/></marker>
+    <marker id="adb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#1565C0"/></marker>
+    <marker id="ap" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#6A1B9A"/></marker>
+    <marker id="aps" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#7B1FA2"/></marker>
+    <marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2E7D32"/></marker>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#880E4F"/></marker>
+    <marker id="ags" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#546E7A"/></marker>
+    <marker id="ao" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#E65100"/></marker>
+  </defs>
+  <!-- L4 normal -->
+  <rect x="60" y="70" width="300" height="52" rx="6" fill="#E8F4FD" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="210" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L4) Application</text>
+  <text x="210" y="107" text-anchor="middle" font-size="9.5" fill="#333">Customer Application</text>
+  <text x="210" y="119" text-anchor="middle" font-size="9" fill="#666">Uses PSA Crypto API</text>
+  <line x1="210" y1="122" x2="210" y2="143" stroke="#2196F3" stroke-width="1.5" marker-end="url(#ab)"/>
+  <!-- L3 -->
+  <rect x="60" y="145" width="300" height="52" rx="6" fill="#E8F4FD" stroke="#2196F3" stroke-width="1.5"/>
+  <text x="210" y="166" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L3) Frontend</text>
+  <text x="210" y="182" text-anchor="middle" font-size="9.5" fill="#333">mbedTLS 4.0 / TF-PSA-Crypto</text>
+  <text x="210" y="194" text-anchor="middle" font-size="9" fill="#666">PSA Crypto API; routes to registered drivers</text>
+  <line x1="210" y1="197" x2="210" y2="218" stroke="#1565C0" stroke-width="1.5" marker-end="url(#adb)"/>
+  <text x="232" y="211" font-size="8.5" fill="#1565C0" font-style="italic">PSA driver calls</text>
+  <!-- TF-PSA Key Storage note -->
+  <rect x="368" y="152" width="54" height="38" rx="4" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="395" y="168" text-anchor="middle" font-size="7.5" font-weight="bold" fill="#4A148C">TF-PSA</text>
+  <text x="395" y="180" text-anchor="middle" font-size="7.5" fill="#4A148C">Key Store</text>
+  <text x="395" y="191" text-anchor="middle" font-size="7" fill="#666">wrap only</text>
+  <line x1="368" y1="172" x2="360" y2="172" stroke="#7B1FA2" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#aps)"/>
+  <!-- L2.5 PSA Shim -->
+  <rect x="60" y="220" width="300" height="52" rx="6" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="1.5"/>
+  <text x="210" y="241" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L2.5) PSA Driver Shim</text>
+  <text x="210" y="257" text-anchor="middle" font-size="9.5" fill="#333">Per-family PSA driver shim</text>
+  <text x="210" y="269" text-anchor="middle" font-size="9" fill="#666">Translates PSA calls to CCH; owns contexts</text>
+  <line x1="210" y1="272" x2="210" y2="293" stroke="#6A1B9A" stroke-width="1.5" marker-end="url(#ap)"/>
+  <text x="232" y="286" font-size="8.5" fill="#6A1B9A" font-style="italic">CCH calls (static)</text>
+  <!-- L4 ultra-constrained -->
+  <rect x="450" y="70" width="320" height="52" rx="6" fill="#FFF3E0" stroke="#E65100" stroke-width="1.5"/>
+  <text x="610" y="91" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L4) Application</text>
+  <text x="610" y="107" text-anchor="middle" font-size="9.5" fill="#333">Ultra-constrained Application</text>
+  <text x="610" y="119" text-anchor="middle" font-size="9" fill="#666">Calls CCH directly (limited use cases only)</text>
+  <path d="M 610 122 L 610 288 L 578 288 L 578 295" stroke="#E65100" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#ao)"/>
+  <text x="648" y="195" font-size="8.5" fill="#E65100" font-style="italic">direct CCH call</text>
+  <text x="648" y="207" font-size="8.5" fill="#E65100" font-style="italic">(bypasses TF-PSA)</text>
+  <text x="648" y="219" font-size="8.5" fill="#E65100" font-style="italic">no SW fallback</text>
+  <!-- CCH full width -->
+  <rect x="60" y="295" width="710" height="58" rx="6" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2"/>
+  <text x="415" y="317" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1B5E20">(L2) Common Crypto HAL (CCH)  -  cch_crypto.h</text>
+  <text x="415" y="333" text-anchor="middle" font-size="9.5" fill="#333">Family-agnostic hardware abstraction C API  |  Called by PSA shim (primary) or directly (constrained)</text>
+  <text x="415" y="347" text-anchor="middle" font-size="9" fill="#555">Static dispatch to L1 adapters  |  No function pointers  |  gc-sections friendly</text>
+  <!-- CCH -> L1 arrows -->
+  <line x1="175" y1="353" x2="175" y2="374" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#ag)"/>
+  <line x1="415" y1="353" x2="415" y2="374" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#ag)"/>
+  <line x1="660" y1="353" x2="660" y2="374" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#ag)"/>
+  <text x="193" y="366" font-size="8" fill="#2E7D32" font-style="italic">static</text>
+  <text x="433" y="366" font-size="8" fill="#2E7D32" font-style="italic">static</text>
+  <text x="674" y="366" font-size="8" fill="#2E7D32" font-style="italic">static</text>
+  <!-- L1: Protected Mode RA/RX/RZ -->
+  <rect x="60" y="376" width="225" height="60" rx="6" fill="#FCE4EC" stroke="#C62828" stroke-width="1.5"/>
+  <text x="172" y="396" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L1) Engine Adapter</text>
+  <text x="172" y="411" text-anchor="middle" font-size="9.5" fill="#C62828">Protected Mode</text>
+  <text x="172" y="424" text-anchor="middle" font-size="9" fill="#333">RA / RX / RZ</text>
+  <text x="172" y="432" text-anchor="middle" font-size="7.5" fill="#888">HW-wrapped keys; unwrap inside engine</text>
+  <!-- L1: Compatibility Mode RA/RX/RZ -->
+  <rect x="295" y="376" width="235" height="60" rx="6" fill="#FFF8E1" stroke="#F57F17" stroke-width="1.5"/>
+  <text x="412" y="396" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L1) Engine Adapter</text>
+  <text x="412" y="411" text-anchor="middle" font-size="9.5" fill="#E65100">Compatibility Mode</text>
+  <text x="412" y="424" text-anchor="middle" font-size="9" fill="#333">RA / RX / RZ</text>
+  <text x="412" y="432" text-anchor="middle" font-size="7.5" fill="#888">Plaintext keys; legacy / migration use</text>
+  <!-- L1: RL78 plaintext only -->
+  <rect x="540" y="376" width="230" height="60" rx="6" fill="#EFEBE9" stroke="#795548" stroke-width="1.5"/>
+  <text x="655" y="396" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L1) Engine Adapter</text>
+  <text x="655" y="411" text-anchor="middle" font-size="9.5" fill="#795548">RL78 - Plaintext only</text>
+  <text x="655" y="424" text-anchor="middle" font-size="9" fill="#333">No hardware key wrapping</text>
+  <text x="655" y="432" text-anchor="middle" font-size="7.5" fill="#888">SW-only fallback for most algorithms</text>
+  <!-- Compile-time note -->
+  <text x="415" y="449" text-anchor="middle" font-size="8.5" fill="#777" font-style="italic">Protected / Compatibility mode selected at compile/link time - not runtime switchable</text>
+  <!-- L1 -> L0 -->
+  <line x1="172" y1="436" x2="172" y2="457" stroke="#880E4F" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="412" y1="436" x2="412" y2="457" stroke="#880E4F" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="655" y1="436" x2="655" y2="457" stroke="#880E4F" stroke-width="1.5" marker-end="url(#ar)"/>
+  <!-- L0 drivers -->
+  <rect x="60" y="459" width="225" height="52" rx="6" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5"/>
+  <text x="172" y="479" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L0) Hardware Driver</text>
+  <text x="172" y="494" text-anchor="middle" font-size="9.5" fill="#333">r_sce / r_rsip (Protected lib)</text>
+  <text x="172" y="506" text-anchor="middle" font-size="9" fill="#666">RA, RX, RZ variants</text>
+  <rect x="295" y="459" width="235" height="52" rx="6" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5"/>
+  <text x="412" y="479" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L0) Hardware Driver</text>
+  <text x="412" y="494" text-anchor="middle" font-size="9.5" fill="#333">r_sce / r_rsip (Compat lib)</text>
+  <text x="412" y="506" text-anchor="middle" font-size="9" fill="#666">RA, RX, RZ variants</text>
+  <rect x="540" y="459" width="230" height="52" rx="6" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5"/>
+  <text x="655" y="479" text-anchor="middle" font-size="10" font-weight="bold" fill="#555">(L0) Hardware Driver</text>
+  <text x="655" y="494" text-anchor="middle" font-size="9.5" fill="#333">RL78 family HAL</text>
+  <text x="655" y="506" text-anchor="middle" font-size="9" fill="#666">Plaintext operations only</text>
+  <!-- L0 -> HW -->
+  <line x1="172" y1="511" x2="172" y2="528" stroke="#546E7A" stroke-width="1.5" marker-end="url(#ags)"/>
+  <line x1="412" y1="511" x2="412" y2="528" stroke="#546E7A" stroke-width="1.5" marker-end="url(#ags)"/>
+  <line x1="655" y1="511" x2="655" y2="528" stroke="#546E7A" stroke-width="1.5" marker-end="url(#ags)"/>
+  <!-- Hardware bar -->
+  <rect x="60" y="530" width="710" height="44" rx="6" fill="#CFD8DC" stroke="#37474F" stroke-width="1.5"/>
+  <text x="415" y="548" text-anchor="middle" font-size="10" font-weight="bold" fill="#1A1A2E">Hardware</text>
+  <text x="415" y="563" text-anchor="middle" font-size="9" fill="#444">SCE5/SCE7/SCE9/RSIP-E51A (RA)  |  SCE variants (RX)  |  SCE/RSIP variants (RZ)  |  RL78</text>
+  <!-- Legend -->
+  <rect x="60" y="587" width="710" height="58" rx="4" fill="none" stroke="#CCCCCC" stroke-width="1"/>
+  <rect x="72" y="598" width="10" height="10" fill="#E8F4FD" stroke="#2196F3" stroke-width="1"/>
+  <text x="87" y="607" font-size="8.5" fill="#444">PSA / mbedTLS</text>
+  <rect x="172" y="598" width="10" height="10" fill="#EDE7F6" stroke="#7B1FA2" stroke-width="1"/>
+  <text x="187" y="607" font-size="8.5" fill="#444">PSA Shim</text>
+  <rect x="252" y="598" width="10" height="10" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
+  <text x="267" y="607" font-size="8.5" fill="#444">CCH</text>
+  <rect x="305" y="598" width="10" height="10" fill="#FCE4EC" stroke="#C62828" stroke-width="1"/>
+  <text x="320" y="607" font-size="8.5" fill="#444">L1 Protected</text>
+  <rect x="400" y="598" width="10" height="10" fill="#FFF8E1" stroke="#F57F17" stroke-width="1"/>
+  <text x="415" y="607" font-size="8.5" fill="#444">L1 Compat</text>
+  <rect x="488" y="598" width="10" height="10" fill="#EFEBE9" stroke="#795548" stroke-width="1"/>
+  <text x="503" y="607" font-size="8.5" fill="#444">L1 RL78</text>
+  <rect x="558" y="598" width="10" height="10" fill="#ECEFF1" stroke="#546E7A" stroke-width="1"/>
+  <text x="573" y="607" font-size="8.5" fill="#444">L0 Driver</text>
+  <rect x="630" y="598" width="10" height="10" fill="#CFD8DC" stroke="#37474F" stroke-width="1.5"/>
+  <text x="645" y="607" font-size="8.5" fill="#444">Hardware</text>
+  <line x1="72" y1="628" x2="92" y2="628" stroke="#E65100" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="97" y="632" font-size="8.5" fill="#444">Direct CCH path (ultra-constrained, no SW fallback)</text>
+  <rect x="430" y="620" width="10" height="10" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="445" y="629" font-size="8.5" fill="#444">TF-PSA Key Storage (wrapping only, not storage)</text>
+</svg>
