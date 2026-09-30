@@ -2,6 +2,20 @@
 
 **Automatically commit and push skill folder changes across all devices and sessions.**
 
+---
+
+## 🤖 STANDING INSTRUCTION FOR CLAUDE
+
+**Every time you pull updated skills (SessionStart hook or manual `git pull`):**
+1. ✅ **Read the changed files** — Check what was updated
+2. ✅ **Review commit messages** — Understand why changes were made
+3. ✅ **Learn new patterns** — Integrate updates into your knowledge
+4. ✅ **Never use stale skills** — Always verify freshness
+
+**Never assume skills haven't changed. Always check and read.**
+
+---
+
 ## Overview
 
 This skill folder setup ensures that whenever you edit or create any file in `~/.claude/skills/`, the changes are automatically:

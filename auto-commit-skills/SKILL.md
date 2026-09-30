@@ -75,6 +75,18 @@ To verify the hook is working:
 - Requires `~/.claude/skills/` to be a git repository (initialized automatically by Claude Code)
 - The `|| true` at the end ensures the hook never blocks a turn if push fails
 
+## 🤖 For Claude: Auto-Read & Learn Rule
+
+**IMPORTANT: Whenever the SessionStart hook pulls fresh skills from GitHub, you MUST:**
+1. Read the updated skill files to learn about changes
+2. Check git log for recent commits: `cd ~/.claude/skills && git log --oneline -5`
+3. Review any modifications in the skill documentation
+4. Understand the latest patterns, rules, and techniques before using the skills
+
+**Why:** Skills evolve with new learnings and fixes. Stale knowledge = bugs. Always read fresh skills.
+
+---
+
 ## ⚠️ CRITICAL: Always Push-Pull (DO NOT FORGET)
 
 **This is a STRICT rule for maintaining skill sync across devices:**
