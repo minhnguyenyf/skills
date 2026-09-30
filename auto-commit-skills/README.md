@@ -42,6 +42,13 @@ This will automatically add the hook to your `~/.claude/settings.json`.
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "cd ~/.claude/skills && git pull origin master 2>/dev/null || true",
+        "statusMessage": "Syncing skills from GitHub..."
+      }
     ]
   }
 }
@@ -56,6 +63,7 @@ This will automatically add the hook to your `~/.claude/settings.json`.
 
 ### The Command Breakdown
 
+**Auto-Push (PostToolUse):**
 ```bash
 jq -r '.tool_input.file_path // .tool_response.filePath' | { 
   read -r f
@@ -66,6 +74,11 @@ jq -r '.tool_input.file_path // .tool_response.filePath' | {
     git push origin master 2>/dev/null || true  # push (silent on error)
   fi
 }
+```
+
+**Auto-Pull (SessionStart):**
+```bash
+cd ~/.claude/skills && git pull origin master 2>/dev/null || true
 ```
 
 ## Testing & Verification
