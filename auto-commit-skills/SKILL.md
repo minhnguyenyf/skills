@@ -75,6 +75,22 @@ To verify the hook is working:
 - Requires `~/.claude/skills/` to be a git repository (initialized automatically by Claude Code)
 - The `|| true` at the end ensures the hook never blocks a turn if push fails
 
+## ⚠️ CRITICAL: Always Push-Pull (DO NOT FORGET)
+
+**This is a STRICT rule for maintaining skill sync across devices:**
+
+1. **PostToolUse Hook (Auto-Push)** — Every skill edit triggers auto-commit & push to GitHub
+   - If push fails, manually verify: `cd ~/.claude/skills && git push origin master`
+   - Never let failed pushes go unnoticed
+
+2. **SessionStart Hook (Auto-Pull)** — Every new session pulls latest skills from GitHub
+   - Ensures you always have the latest skills on every device
+   - If skills are out of sync, the entire system breaks
+
+3. **Golden Rule** — Before switching to another device, verify the push succeeded on GitHub
+   - Check: `git log origin/master --oneline -1` (should match your local HEAD)
+   - If out of sync, manually pull: `git pull origin master`
+
 ## See Also
 
 - Claude Code settings reference: `~/.claude/settings.json`
