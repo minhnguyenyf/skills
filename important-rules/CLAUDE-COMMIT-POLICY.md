@@ -22,9 +22,12 @@
 ### For Project Repos (peaks, etc.):
 1. **Stage changes** (git add)
 2. **Show diff** to user
-3. **ASK FOR APPROVAL** before committing
-4. **User commits** (`git commit`)
-5. **User pushes** (`git push`)
+3. **NEVER commit** ❌
+4. **NEVER push** ❌
+5. **User commits MANUALLY** (Minh will do this themselves)
+6. **User pushes MANUALLY** (Minh will do this themselves)
+
+**CRITICAL**: Only Minh manually commits and pushes to work project repos. Claude NEVER touches git commit/push for project work.
 
 ### For Skills Repos (`~/.claude/skills/`):
 1. **Stage changes**
