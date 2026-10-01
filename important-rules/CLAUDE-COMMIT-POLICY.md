@@ -99,8 +99,22 @@ If user explicitly says: "Auto-commit this to [any repo]"
 
 ---
 
+## Submodule Read-Only Constraint
+
+### DO NOT modify these submodules:
+- ❌ `ra/arm/mbedtls-v4/` - No write permissions
+- ❌ `ra/arm/mbedtls-v4/tf-psa-crypto/` - No write permissions
+
+These are external dependencies managed as git submodules. Any fixes or configurations must be done at the project level (e.g., include path configurations in e2 studio project settings), not by modifying submodule files.
+
+**Related Issue**: TF-PSA-Crypto v4 requires include path `ra/arm/mbedtls-v4/tf-psa-crypto/drivers/builtin/include` for `mbedtls/private_access.h` - this must be configured in e2 studio C/C++ compiler include paths, not by copying files into the submodule.
+
+---
+
 ## Last Updated
 
 - **2026-10-01**: Initial rule set after constraint fix incident
 - User: Minh Nguyen
 - Context: Fixed XML constraint but learned not to auto-commit to project repos
+- **2026-10-01**: Added submodule read-only constraint
+- Context: Cannot modify mbedtls-v4 and tf-psa-crypto submodules
