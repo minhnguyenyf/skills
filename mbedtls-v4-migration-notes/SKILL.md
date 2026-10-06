@@ -794,12 +794,23 @@ prefix. That guess was wrong in two places. Verified against
   (a `provides interface`, not the module id) was intentionally left alone since other
   module descriptions (`Arm##PSA##Crypto##TF-PSA-Crypto####x.xx.xx.xml`) still reference that
   exact interface id.
-- **Individual config properties still use the legacy `config.driver.psa_crypto.*` prefix**
-  in the v4 module description (394 such properties found), even though the module's own id
-  changed to `tf_psa_crypto`. So `config.driver.psa_crypto.mbedtls_threading_c`,
-  `mbedtls_threading_alt`, `mbedtls_memory_buffer_alloc_c`, `mbedtls_psa_its_file_c`,
-  `mbedtls_fs_io`, `mbedtls_psa_crypto_storage_c` all carry over unchanged from v3 — do NOT
-  rename these to a `tf_psa_crypto` or `rm_tf_psa_crypto` prefix.
+- **SUPERSEDED (2026-10-06): config properties now use `config.driver.tf_psa_crypto.*`
+  (and `config.driver.tf_psa_crypto_alg_*` / `_key_type_*`), NOT the legacy
+  `config.driver.psa_crypto.*`.** An earlier version of this note said to keep the legacy
+  prefix; that was wrong for the v4 module description. Only 37 leftover definitions in
+  `Arm##PSA##Crypto##TF-PSA-Crypto####x.xx.xx.xml` still used `psa_crypto` (the RNG,
+  key-format, platform setup/teardown, ECP window size, ECDH, SPM, key-ID-owner ones) while
+  ~870 references already used `tf_psa_crypto`, so definitions and references didn't match.
+  All were renamed with `sed 's/config\.driver\.psa_crypto/config.driver.tf_psa_crypto/g'`
+  (no collisions: no `tf_` definition existed for any of them). The v4 XML test templates
+  `rm_tf_psa_crypto/.xml_tests/tf_psa_crypto_{availability,littlefs_availability}.yml.j2`
+  were updated the same way (`mbedtls_threading_c`, `_threading_alt`,
+  `_memory_buffer_alloc_c`, `_psa_its_file_c`, `_fs_io`, `_psa_crypto_storage_c`).
+  Do NOT touch the v3 tree (`mbedCrypto` description, `mbedtls_availability.yml.j2`, BSP
+  descriptions): `config.driver.psa_crypto.*` is correct there. When editing, check for the
+  `_alg_`/`_key_type_` underscore forms too, not just `psa_crypto.`.
+  Sanity check after any id rename: every `${config.driver.*}` referenced in constraints must
+  have a matching `<property ... id=...>` definition (diff the two sorted id lists).
 - **`config.driver.rm_tf_psa_crypto.stdc_want_lib_ext1` does not exist at all** — this was
   fabricated in the first draft. Grepping the v4 module description for "stdc" or "annex"
   returns nothing. `__STDC_WANT_LIB_EXT1__` is only a build macro set directly in the project
