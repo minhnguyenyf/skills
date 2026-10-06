@@ -1351,3 +1351,42 @@ reducing `BSP_CFG_HEAP_BYTES` in `projects/rm_tf_psa_crypto.xml` or disabling te
 5. Rebuild and confirm no overflow
 
 **Files affected:** `projects/rm_tf_psa_crypto.xml` (board `common_macros` heap/stack).
+
+## 23. Module-description copy/paste bugs that break e2 studio constraints and generated config (2026-10-06)
+
+Found while chasing xml-test failures `rm_tf_psa_crypto_tf_psa_crypto_availability_gcc_No_RTOS_*`
+(initial constraints "Expected 7, Found 8", final "Expected 0, Found 1", build `completed-0`) on
+all boards. All in `ra/arm/.module_descriptions/Arm##PSA##Crypto##TF-PSA-Crypto####x.xx.xx.xml`.
+
+**1. Unbalanced parens in a constraint = permanently-active constraint.** Same class as §19 (ECC
+heap). Second instance: "A minimum RTOS heap of 0x1800 ... Software ECC" had 10 `(` / 9 `)`. e2
+studio cannot evaluate it, so it fails closed: shown even with No RTOS (the `!testExists(rtos)`
+escape never gets evaluated) and not cleared by raising heap. That one constraint explains both the
++1 initial count and the leftover 1 at the end. Fix: add the missing `)` at the end.
+
+**2. Properties whose option ids were copy-pasted from a sibling.** A property's `default` and its
+`<option id>`s must all start with the property's own id. Found and fixed:
+- `..._ecp_secp_r1_256`: options were `..._secp_k1_256.*`
+- `..._ecp_secp_r1_521`: options and default were `..._secp_r1_512.*`
+- `..._alg_ccm_star_no_tag`: options were `..._alg_ccm.*` (duplicate option ids with the CCM property)
+- `..._key_type_{ecc,rsa,dh}_key_pair_import`: default had no `.enabled/.disabled` suffix. Set to
+  `.disabled` to match every sibling key-pair property (intent not confirmed with the author).
+Why it matters: the config template emits `#if ${config.driver.tf_psa_crypto_<id>}`, which needs
+the property to resolve to an option value (`1`/`0`). A default that matches no option can leave a
+bare `#if`, a preprocessor error in generated `tf-psa-crypto-config.h`. This is a likely cause of
+the 17 compile errors noted as undiagnosed in §19 (not yet confirmed by a build). It also made the
+`mbedTLS_v4` constraint "MBEDTLS_ECP_DP_SECP256R1_ENABLED ... PSA_WANT_ECC_SECP_R1_256" impossible
+to satisfy, since `secp_r1_256.enabled` was not an option of that property.
+
+**Not changed:** `secp_r1_256` default is `.disabled`, while v3 defaulted SECP256R1 to enabled and
+the mbedTLS_v4 module requires it enabled. Decide whether the default should be `.enabled`.
+
+**Checks to run after any edit of this file (all took seconds, python):**
+1. Per `<constraint>`: `count('(') == count(')')`.
+2. Per `<property>` with options: every option id starts with `property id + '.'`, and `default`
+   (if a `config.` id) is one of its option ids; no option id appears twice file-wide.
+3. Every `${config.driver.*}` used in constraints/templates has a `<property id=...>` definition.
+   Ignore `config.bsp.*` and `config.awsfreertos.*` (defined in other module files).
+4. `xmllint --noout`, and keep CRLF endings (the working copy is CRLF; use `open(..., newline='')`).
+Numeric/self-closing properties will confuse a naive regex (it picks up the next property's
+options); skip `<property .../>` tags.
