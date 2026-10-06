@@ -1390,3 +1390,40 @@ the mbedTLS_v4 module requires it enabled. Decide whether the default should be 
 4. `xmllint --noout`, and keep CRLF endings (the working copy is CRLF; use `open(..., newline='')`).
 Numeric/self-closing properties will confuse a naive regex (it picks up the next property's
 options); skip `<property .../>` tags.
+
+## 24. FSP-user build: `fatal error: 'mbedtls/private_access.h' file not found` = pack include list and source list are incomplete (2026-10-06)
+
+**Symptom (adding the pack manually and building as an FSP user, not the dev test build):**
+`ra/arm/mbedtls-v4/tf-psa-crypto/include/mbedtls/platform.h:28:10: fatal error: 'mbedtls/private_access.h' file not found`.
+The header IS present in the generated project (`.../drivers/builtin/include/mbedtls/private_access.h`);
+the compiler just never searches that folder. Do NOT touch the mbedtls-v4 submodule.
+
+**Root cause, two separate gaps in `ra/arm/!dsn/tf_psa_crypto_module.xml`** (the pack-creator input;
+`pack-creator/cmsis_pack_creator_v2.py` reads `<sources>` and `<include_folders>` from it, and e2 studio
+generates `.cproject` include paths 1:1 from `<include_folders>`; confirmed against a generated
+`.cproject`, which had only `mbedtls-v4`, `/include`, `/library`, `tf-psa-crypto/include`, `tf-psa-crypto/drivers`):
+1. `<include_folders>` lacked `tf-psa-crypto/drivers/builtin/include` (and `.../mbedtls/private`).
+   `projects/rm_tf_psa_crypto.xml` (the dev/test build) already had both, which is why only the
+   user flow broke. Added both.
+2. `<sources>` lacked 18 headers the library needs, so they were never shipped to user projects.
+   Fixing (1) alone only moves the error: next failure was `tf-psa-crypto/build_info.h`. Added:
+   `library/{mbedtls_common,mbedtls_platform_requirements}.h`;
+   `tf-psa-crypto/core/{psa_crypto_driver_wrappers,psa_crypto_random,tf_psa_crypto_platform_requirements}.h`;
+   `drivers/builtin/include/mbedtls/private/{crypto_builtin_composites,crypto_builtin_key_derivation,crypto_builtin_primitives,error_common}.h`;
+   `include/mbedtls/{compat-3-crypto.h,private/pk_private.h}`;
+   `include/tf-psa-crypto/build_info.h` and `include/tf-psa-crypto/private/crypto_adjust_config_{auto_enabled,dependencies,key_pair_types,support,synonyms}.h`;
+   `utilities/crypto_oid.h`. The list had gone stale after the submodule moved to 4.1.0.
+
+**Reusable method (do this after every submodule bump; takes seconds):**
+`gcc -M -MG` every `.c` in the module's `<sources>` using the intended include folders, collect the
+`ra/arm/mbedtls-v4/...` files it reports, and diff against the union of `<source>` entries of
+`tf_psa_crypto_module.xml` + `mbed_tls4_module.xml` (expand directory entries such as `include/psa`;
+`ssl.h`/`x509.h`/`debug.h` belong to the mbedTLS v4 module, not this one). Anything needed but unlisted is a
+user-build failure waiting to happen. Then simulate a user project: copy only the listed files into a temp
+tree, add the `<include_folder>` dirs, and `gcc -fsyntax-only` an include of `mbedtls/platform.h` and
+`psa/crypto.h`. Both compiled clean after the fix (full `hal_data.h` chain needs the ARM toolchain).
+Gotcha: this machine's shell is zsh, which does not word-split `$VAR` in `gcc $I`; run the test via `bash -c`.
+
+**After editing the module xml the pack must be rebuilt and re-added** in e2 studio, then regenerate the
+project; the already-generated `.cproject` keeps the old include list. Not yet verified with a real ARM
+build of the user flow.
