@@ -69,7 +69,7 @@ By design yes: the boot flash map has no internal entry for the secondary, so v1
 3. **Swap configuration** with QSPI trailer/status writes is untested.
 4. **J-Link:** whether the loader can program QSPI on this board is unverified. `r_qspi` tests set `QSPI_TEST_DEBUGGER_DOWNLOAD=1` for EK-RA6M5 (and have a `g_debugger_download_working` fallback), so loading directly is plausible.
 5. **CI side effect:** `ra6m5_ek` is already in the `rm_mcuboot_port` pipeline entry, so `ra6_qspi` runs there automatically.
-6. Requirement ids and doc anchors in TG2 still say `ospi`; docs not updated for QSPI. Release note `FSPRA-6767.yml` is type 3 (internal).
+6. TG2 requirement ids/anchors/constants renamed `ospi` -> `xspi` (generic for OSPI and QSPI); the erase-test doc text still describes the 32 KB logical sector. Release note `FSPRA-6767.yml` is type 3 (internal).
 
 ## 9. Bootloader copy versus J-Link direct load
 | | Bootloader copy (current) | J-Link direct (like `ra8_ospi`) |
