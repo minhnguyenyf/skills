@@ -9,6 +9,9 @@ Cause: the `boot_qspi`/`image_qspi` folders only reach the linker (`<linker_incl
 Consequences: section 6 below ("really uses QSPI") is NOT true for the current build; the earlier bss-size evidence only showed the XSPI buffers compiled in. The J-Link/bootloader-copy comparison in section 9 still holds as a design comparison.
 Fix options (decision pending): (1) new project types `boot_qspi`/`boot_app_qspi` with their own shared xml and `SConstruct` classes, like `boot_multi_images` (repo-native, shared build script change); (2) rewrite ra6m5 default `boot`/`image` as ra8d1 did (breaks `ra6m5_std`); (3) select the flash map inside `flash_map.c` (production code change).
 
+## 0b. Fix applied (2026-10-07)
+The default ra6m5 `boot`/`image` `bsp_linker_info.h` (gcc, ac6, iar, llvm; 8 files) now switch the secondary `flash_map` entry to external flash at 0x60000000 when `RM_MCUBOOT_PORT_CFG_SECONDARY_USE_XSPI` is defined (only the QSPI projects define it). Verified from the compiled `flash_map.o` of the secondary app, typical app and the `ra6_qspi` bootloader (external, 0x60000000), and `rm_mcuboot_app` for `ra6m5_std` stays internal (0x40000). Builds of `ra6_qspi` and `rm_mcuboot_app_qspi` (gcc) exit 0. Not yet re-run on hardware; the two reject tests should now pass. Trade-off: hand-edited generated files.
+
 ## 1. Purpose
 Test MCUboot (`rm_mcuboot_port`) on EK-RA6M5 with the secondary image slot in the external QSPI flash (MX25L25645G, 32 MB) and the primary slot in internal flash. The only comparable test in the repo is `ra8_ospi` (OSPI on EK-RA8D1).
 
