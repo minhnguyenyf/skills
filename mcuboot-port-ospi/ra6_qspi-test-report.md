@@ -1,7 +1,13 @@
 # ra6_qspi MCUboot test report (EK-RA6M5, QSPI secondary slot)
 
 Date: 2026-10-07. Branch: FSPRA-6767. Author of the work: Minh Nguyen with Claude Code.
-Status: **designed and partly built; not yet run on hardware.** Read section 7 before relying on any statement here.
+Status: **ran on hardware once (2026-10-07): 2 TG2 tests failed; root cause found, see section 0. Sections 4-6 describe the INTENDED design and are wrong about flash_map until the fix in section 0 is applied.**
+
+## 0. Hardware result and root cause (2026-10-07) - read first
+Failures: `TC_Erase_Rejects_Unaligned_Length` (tg2.c:246) and `TC_Erase_Rejects_Unaligned_Address` (tg2.c:269), "Expected Not-Equal"; the other TG2 tests did not fail.
+Cause: the `boot_qspi`/`image_qspi` folders only reach the linker (`<linker_includes>` -> `LIBINCPATH`). The compile-time include for `bsp_linker_info.h` comes from the project type's shared xml (`test_files/shared/common_boot.xml` -> `boot`, `common_boot_app.xml` -> `image`) and a project `<include_dirs>` entry is appended after it, so the default folders always win (checked from the `scons -n` -I order). Both the bootloader and the app were therefore compiled with the INTERNAL flash map: the secondary slot was internal flash at 0x40000, QSPI was only a copy target, and `flash_area_erase` used the internal path, which accepts unaligned erases. The reject checks only exist in the external (XSPI) path of `flash_map.c`.
+Consequences: section 6 below ("really uses QSPI") is NOT true for the current build; the earlier bss-size evidence only showed the XSPI buffers compiled in. The J-Link/bootloader-copy comparison in section 9 still holds as a design comparison.
+Fix options (decision pending): (1) new project types `boot_qspi`/`boot_app_qspi` with their own shared xml and `SConstruct` classes, like `boot_multi_images` (repo-native, shared build script change); (2) rewrite ra6m5 default `boot`/`image` as ra8d1 did (breaks `ra6m5_std`); (3) select the flash map inside `flash_map.c` (production code change).
 
 ## 1. Purpose
 Test MCUboot (`rm_mcuboot_port`) on EK-RA6M5 with the secondary image slot in the external QSPI flash (MX25L25645G, 32 MB) and the primary slot in internal flash. The only comparable test in the repo is `ra8_ospi` (OSPI on EK-RA8D1).
