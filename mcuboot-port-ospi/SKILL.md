@@ -25,6 +25,8 @@ description: Notes on ra/fsp/src/rm_mcuboot_port (MCUboot port for RA) and its O
 - Tests (`!test_app/rm_mcuboot_port_tests_*.c`): TG1 runs `TC_Vtor` only when NOT OSPI (skipped with OSPI), plus multi-image if enabled. TG2 (OSPI only, needs `RM_MCUBOOT_PORT_SECONDARY=1`, else `TEST_FAIL_MESSAGE("Primary app running, expected secondary.")`): virtual sectors match physical block, erase one block, erase multiple blocks, partial erase does not over-erase, rejects unaligned length, rejects unaligned address (requirement ids `mcuboot_port_ospi_*`, Jira FSPRA-4851).
 - `!test/rm_mcuboot_port_data.c` (OSPI branch, S28HS512T on EK-RA8D1, **device 1 / CS1**): defines `g_ospi_b_cfg` (1S-1S-1S commands) and `rm_mcuboot_port_ospi_test_setup()`: configures OSPI pins, releases CS0, pulses flash RESET# (P1_06) to leave octal/DDR mode, enables OCTACLK from main osc if disabled (else reads return 0xFF), opens OSPI_B once, then reads JEDEC ID into debug globals `g_ospi_jedec_id` (expect 0x001A5B34).
 
+Manager-facing review (is the OSPI test valid for QSPI, old vs new test): [ra6_qspi-pm-review-report.md](ra6_qspi-pm-review-report.md).
+
 Failure analysis of the first hardware run (TG2 reject tests, flash_map root cause, fix): [ra6_qspi-tg2-failure-report.md](ra6_qspi-tg2-failure-report.md).
 
 Full report (design, flow, evidence, verification status, risks, J-Link vs bootloader copy): [ra6_qspi-test-report.md](ra6_qspi-test-report.md).
