@@ -7,7 +7,7 @@ Audience: reviewers, the project manager, and engineers who will maintain the MC
 ## 1. Summary
 - **Goal:** have a test that runs MCUboot on EK-RA6M5 with the secondary image slot in the external QSPI flash (Macronix MX25L25645G, 32 MB) and the primary slot in internal flash, and checks the port's external-flash behaviour (virtual sectors, whole-block erase, rejection of unaligned erase).
 - **Result:** a new boot project `ra6_qspi` plus a separate app project `rm_mcuboot_app_qspi.xml`; the existing `ra6m5_std` test is untouched. The six TG2 erase tests (written for OSPI in FSPRA-4851) now run for QSPI too and were generalised from OSPI to XSPI naming.
-- **The key engineering finding:** MCUboot only treats the secondary slot as external flash if the compiled `flash_map[]` table says so. That table is selected at compile time from the default ra6m5 linker folders, not by the project's linker settings. The final design adds an `#ifdef` guard in 8 default `bsp_linker_info.h` files, so only the QSPI projects get the external map.
+- **The key engineering finding:** MCUboot only treats the secondary slot as external flash if the compiled `flash_map[]` table says so. That table is selected at compile time from the default ra6m5 linker folders, which are *collected files* protected by a CI hash check, so they cannot be edited. The final design adds a small generic hook in `flash_map.c` (`RM_MCUBOOT_PORT_CFG_FLASH_MAP_HEADER`) and a test-only header that defines `flash_map[]` with the secondary slot external. Only the two QSPI projects set the macro.
 - **Quality checks (gcc, run locally):** all five builds succeed (`ra6_qspi` typical/overwrite/overwrite_fast, `rm_mcuboot_app_qspi` typical/secondary), the compiled `flash_map` was decoded and shows the secondary as external at 0x60000000, and the repo's clang-tidy reports 0 errors on the new code.
 
 ## 2. Background: what existed before
@@ -41,26 +41,16 @@ internal flash                         QSPI (MX25L25645G, 32 MB)
 6. **App** (secondary build, now in the primary slot) runs `RunAllRM_MCUBOOT_PORTTests`. TG1 `TC_Vtor` is skipped for XSPI. TG2: per test `rm_mcuboot_port_qspi_test_setup()` then `flash_area_open(secondary)` and the six checks (section 3.5).
 - **Pass/fail linkage:** if the update failed, the old typical image runs (`RM_MCUBOOT_PORT_SECONDARY=0`) and TG2 fails with "Primary app running, expected secondary", so a failed update cannot pass silently.
 
-### 3.3 Selecting external flash: the flash-map guard (the central design decision)
-- `flash_map[]` is defined in `bsp_linker_info.h` under `#ifdef FLASH_MAP_C` and included by `flash_map.c`. Its secondary entry decides whether `flash_area_*` calls take the internal-flash or the external (XSPI) path.
-- The compile-time include path to that header comes from the shared project-type XML (`test_files/shared/common_boot.xml` points at `.../!linker/${COMPILER}/boot`, `common_boot_app.xml` at `.../image`). A project's `<linker_includes>` only affects the linker search path, and a project's `<include_dirs>` is appended after the common one, so a project cannot override which `bsp_linker_info.h` is compiled. (Verified from the `scons -n` include order.)
-- Therefore the guard lives in the default files, in all 8 of `ra/fsp/src/bsp/mcu/ra6m5/!linker/{gcc,ac6,iar,llvm}/{boot,image}/bsp_linker_info.h`:
-```c
-{
-    .fa_id        = FLASH_AREA_0S_ID,
-#ifdef RM_MCUBOOT_PORT_CFG_SECONDARY_USE_XSPI
-    .fa_device_id = FLASH_DEVICE_EXTERNAL_FLASH,
-    .fa_off       = BSP_PARTITION_QSPI_FLASH_CPU0_S_START,   /* 0x60000000 */
-#else
-    .fa_device_id = FLASH_DEVICE_INTERNAL_FLASH,
-    .fa_off       = BSP_PARTITION___BL_0_S_H_START,          /* 0x40000 */
-#endif
-    .fa_size      = BSP_PARTITION___BL_0_S_H_SIZE + BSP_PARTITION___BL_0_S_I_SIZE,
-},
-```
-- Only the two QSPI projects define `RM_MCUBOOT_PORT_CFG_SECONDARY_USE_XSPI` on ra6m5, so every other ra6m5 project is unchanged. Verified: the compiled table for `rm_mcuboot_app` (used by `ra6m5_std`) still shows the secondary as internal at 0x40000.
-- Verification method: `arm-none-eabi-objdump -s .../flash_map.o`, section `.rodata.flash_map`, 12 bytes per entry (`fa_id`, `fa_device_id`, 2 pad, `fa_off`, `fa_size`; device 0x7f = internal, 0x80 = external). The secondary app, the typical app and the `ra6_qspi` bootloader all show entry 2 as `02 80 .. 00 00 00 60 ..`.
-- Trade-off: these are generated-style files edited by hand; regenerating them would silently drop the guard (the tests would then fail on the unaligned-erase cases, so it is detectable). Alternative considered: new project types `boot_qspi`/`boot_app_qspi` with their own shared XML (the pattern used by `boot_multi_images`); cleaner but changes `SConstruct`, so not taken.
+### 3.3 Selecting external flash: the flash-map hook (the central design decision)
+- `flash_map[]` is defined in the generated `bsp_linker_info.h` under `#ifdef FLASH_MAP_C` and included by `flash_map.c`. Its secondary entry decides whether `flash_area_*` calls take the internal-flash path or the external (XSPI) path.
+- A project cannot override that table through its XML: the compile-time include path comes from the shared project-type XML (`test_files/shared/common_boot.xml` points at `.../!linker/${COMPILER}/boot`, `common_boot_app.xml` at `.../image`), `<linker_includes>` only changes the linker search path, and a project's `<include_dirs>` is appended after the common one (verified from the `scons -n` include order).
+- The default ra6m5 `bsp_linker_info.h` files cannot be edited either: they are *collected files* whose SHA-256 is stored in `data/collected-files/ddsc-generated.yml` and checked in CI by `scripts/pipeline/check_collected_files.sh` (stage 1 rejects manually modified files; stage 2 compares freshly collected files against the stored hashes). An earlier version of this ticket guarded the table inside those 8 files and failed that check for exactly those 8 files.
+- Final design, no collected file touched:
+  - `flash_map.c` (6 added lines): `#ifdef RM_MCUBOOT_PORT_CFG_FLASH_MAP_HEADER` include that header, `#else` the original `#define FLASH_MAP_C` plus `#include "bsp_linker_info.h"`. With the macro unset (every customer build and every other test) behaviour is identical to before.
+  - New test-only header `ra/fsp/src/rm_mcuboot_port/!test/rm_mcuboot_port_qspi_flash_map.h` defines `static const struct flash_area flash_map[]` with three entries: primary internal at `BSP_PARTITION___BL_0_P_H_START`, secondary `FLASH_DEVICE_EXTERNAL_FLASH` at `BSP_PARTITION_QSPI_FLASH_CPU0_S_START` (0x60000000) with size H+I, scratch internal at `BSP_PARTITION___BL_S_START`. It uses the partition macros from the unmodified generated header.
+  - Both QSPI projects pass `RM_MCUBOOT_PORT_CFG_FLASH_MAP_HEADER=\"!test/rm_mcuboot_port_qspi_flash_map.h\"` in `test_macros` (the header is found through the existing `-Ira/fsp/src/rm_mcuboot_port`).
+- Verification: the compiled `flash_map.o` of the secondary app and the `ra6_qspi` bootloader shows entry 2 as `02 80 00 00 | 00 00 00 60 | 00 00 02 00` (id 2, external 0x80, offset 0x60000000, size 0x20000); the 8 collected files are byte-identical to develop again (all 80 ra6m5 entries in `ddsc-generated.yml` match); clang-tidy reports 0 errors; all five gcc builds succeed.
+- Alternatives considered: guard inside the 8 collected files (works, fails the CI hash check, and a re-collection would overwrite it); updating the stored hashes (defeats the purpose of the check); new project types `boot_qspi`/`boot_app_qspi` with their own shared XML like `boot_multi_images` (clean, but changes `SConstruct`).
 
 ### 3.4 Projects (XML)
 - **`ra6_qspi`** in `projects/rm_mcuboot_port.xml` (133 added lines, placed next to `ra6m5_std`, derived from it): board `ra6m5_ek`, dependency `rm_mcuboot_app_qspi`, SCE9 plain-key crypto, `r_qspi.c` as instrumented code, test macros `TEST_MCUBOOT=1`, `RM_MCUBOOT_PORT_CFG_SECONDARY_USE_QSPI=1`, `RM_MCUBOOT_PORT_CFG_SECONDARY_USE_XSPI`, `RM_MCUBOOT_PORT_CFG_XSPI_BLOCK_ERASE_SIZE=32768`, `FSP_TEST_FUNCTION=RunAllRM_MCUBOOT_PORTTests`, same three main-macro configurations as `ra6m5_std`.
@@ -90,8 +80,9 @@ internal flash                         QSPI (MX25L25645G, 32 MB)
 |---|---|
 | Hardware: all test cases (reported by owner) | pass |
 | gcc builds of `ra6_qspi` (3 configs) and `rm_mcuboot_app_qspi` (2 configs) | succeed |
-| Compiled flash map for secondary app, typical app, bootloader | external, 0x60000000 |
-| `ra6m5_std`'s app flash map | still internal, 0x40000 (no regression) |
+| Compiled flash map for secondary app and bootloader | external, 0x60000000 |
+| Collected-file hash check (`ddsc-generated.yml`, 80 ra6m5 linker entries) | all match (0 modified) |
+| `ra6m5_std` and other projects | unchanged: default linker files restored to develop, macro unset |
 | clang-tidy (repo setting, warnings-as-errors) on the new code | 0 errors |
 | Bootloader size | about 67 KB, inside the 0x20000 bootloader region |
 | ac6, iar, llvm | linker files updated for all four compilers; only gcc builds and the llvm bootloader link were run by the author; the CI covers the rest |
@@ -103,11 +94,12 @@ internal flash                         QSPI (MX25L25645G, 32 MB)
 3. **A first attempt at the guard hung on hardware (cause not determined).** With the guard applied, the run printed the bootloader banner and then nothing for 10 minutes. Changes made around that time: the app's `image_qspi` linker regions were put back to internal (`bb012a69b52`), the guard was applied to both boot and image files (a guard in the bootloader file alone cannot work, because the TG2 tests run in the app and use the app's own compiled flash map), the unused variant folders were removed, the quad-enable write and a status wait after the last page program were added. The test passes after those changes. Which one removed the hang was not isolated; the linker-region theory is weakened by the build comparison in item 2 (section layout was identical with and without the variant regions). The most likely candidates are the missing quad-enable write and the missing wait before the first memory-mapped read, but this is a hypothesis.
 4. **Quad-enable bit.** The MX25L25645G's quad-enable bit (SR1 0x40) is non-volatile and off by default; the repo's own r_qspi test writes it in every test case. The first setup code assumed it was set; the current code writes and reads it back.
 5. **Lint.** CI clang-tidy rejected bare numbers; a local clang-tidy run also found one redundant cast. Both fixed with named constants and a `uint32_t` local in `rm_mcuboot_port_data.c` and `rm_mcuboot_port_test.c` (commit `7159690bed5` "Fix build failed" touches these two files; the author did not inspect its full content).
+7. **CI collected-file hash check (the last blocker).** `check_collected_files.sh` failed for the 8 edited `bsp_linker_info.h` files (stored vs actual hash). Resolved by restoring those files to develop and moving the flash-map selection to the `flash_map.c` hook above.
 6. **Merging the QSPI app into `rm_mcuboot_app.xml`** was tried and rejected (section 3.4).
 
 ## 6. Risks, limits and follow-ups
 - **Simulated delivery:** the image reaches QSPI through the bootloader's copy, not a real download. A J-Link-direct load (secondary slot at 0x60000000, as `ra8_ospi` does) is a possible follow-up; it needs the non-copy setup in the boot flow and a loader that can program this QSPI chip (the r_qspi tests set `QSPI_TEST_DEBUGGER_DOWNLOAD=1` for this board, so it is plausible).
-- **Hand-edited generated files:** the guard in 8 `bsp_linker_info.h` files; a regeneration drops it silently (detected by the reject tests failing).
+- **New hook in the shipped `flash_map.c`:** 6 lines, inert unless the macro is defined; the QSPI flash map is duplicated in the test header, so if the generated partition macros change names or values the test header must be kept in step (the build would fail on a missing macro).
 - **Alignment:** app `<align>128` (HP flash write size, `MCUBOOT_BOOT_MAX_ALIGN`) versus QSPI page size 256; no problem seen in the passing run, but not analysed in depth.
 - **Swap configuration** with QSPI trailer writes: built and run as part of the three configurations; coverage of the failure cases (power loss mid-swap) is not part of this test.
 - **Coverage gaps:** one of six TG2 tests is ignored on QSPI (block equals logical sector); `TC_Vtor` (end-to-end vector table check) is skipped for XSPI; RTT diagnostics exist but there is no automated check of the `MCUBOOT-QSPI` lines.
