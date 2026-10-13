@@ -58,15 +58,49 @@ Each one has a single line changed, `KEEP(*(.mcuboot_sce9_key))` → `KEEP(*(.mc
 
 The pipeline will fail at this stage. This is the same failure mode as the QSPI work in the `mcuboot-port-ospi` skill (2026-10-09 entry).
 
-### 3.2 High: SCE9 key section is dropped from ra8m1 gcc and llvm scripts
+### 3.2 High: the SCE9 public key loses its placement instruction (gcc and llvm)
 
-The edits above also change behavior. The default `boot` and `image` scripts used to keep `.mcuboot_sce9_key`. Now they keep only `.mcuboot_rsip_key`.
+**Background: what a linker script does**
 
-- `sce9/sce9_keys.c:10` still places `g_pub_key` in `.mcuboot_sce9_key`.
-- So on SCE9 boot and app builds for gcc and llvm, the key section is not kept. It can be garbage-collected or left unplaced.
-- The ac6 `fsp_gen.scat` (`ra8m1/!linker/ac6/image/fsp_gen.scat:507`) still keeps `.mcuboot_sce9_key`. The toolchains are now inconsistent.
+The linker script is a placement list. It tells the linker which compiled data goes where in flash. Each piece of data is in a named *section*. `KEEP(*(.name))` means "place this section in flash, and keep it even if nothing references it."
 
-**Suggested fix:** keep both sections in the non-RSA scripts, for example with `KEEP(*(.mcuboot_sce9_key)) KEEP(*(.mcuboot_rsip_key))`, or with the wildcard `KEEP(*(.mcuboot_*_key))`. Then regenerate through the generator so the collected-file hashes are updated. Also check the ac6 script. Verify with the `.map` file that `g_pub_key` lands in the expected section for an SCE9 build and for an RSIP build.
+**What the SCE9 code does**
+
+- `sce9/sce9_keys.c:10` tags the public key `g_pub_key` with the section name `.mcuboot_sce9_key`.
+- The SCE9 signature check reads the key from that section.
+
+**What this branch changed**
+
+On `develop`, the gcc and llvm `boot` and `image` scripts contain `KEEP(*(.mcuboot_sce9_key))`. On this branch, that line is replaced by `KEEP(*(.mcuboot_rsip_key))`. Nothing in these scripts now mentions `.mcuboot_sce9_key`.
+
+```
+develop:  boot script = "keep .mcuboot_sce9_key"        SCE9 key placed, kept
+branch:   boot script = "keep .mcuboot_rsip_key"        SCE9 key has no rule
+```
+
+**Why this matters**
+
+- With no rule, the linker places the SCE9 key wherever its default rules choose, or drops it if unused data is removed. Either way, the key may not be where the bootloader reads it.
+- The key install step writes the key to the address the `.map` file reports. If the key is not in the expected place, that step and the signature check can disagree.
+- I have not linked an image, so I cannot confirm this happens. It is the risk the missing line creates.
+
+**Scope**
+
+- **gcc and llvm**: affected. Both SCE9 `boot` and `image` builds use these scripts.
+- **ac6 and iar**: SCE9 is not affected. Their SCE9 scripts still keep `.mcuboot_sce9_key`.
+- **ac6 and iar, RSIP** (`boot_rsa` and `image_rsa` folders): the same problem in reverse. Those scripts keep only `.mcuboot_sce9_key` and never place `.mcuboot_rsip_key`. The RSIP key has no rule on those toolchains.
+
+**Suggested fix**
+
+1. In the gcc and llvm scripts, keep both sections, for example `KEEP(*(.mcuboot_sce9_key))` and `KEEP(*(.mcuboot_rsip_key))`. A wildcard `KEEP(*(.mcuboot_*_key))` also works.
+2. Add the RSIP section to the ac6 and iar RSIP scripts.
+3. Make these changes in the generator template (`scripts/mcu_xml_gen/templates/linker_policy_template.j2`) and regenerate. Do not edit the generated files by hand. Hand edits break the collected-file hash check in finding 3.1.
+4. Verify. Build an SCE9 image and an RSIP image for each toolchain. In each `.map` file, confirm `g_pub_key` sits in the expected section and address.
+
+**Not verified**
+
+- Whether the build uses `--gc-sections`. I found no reference to it in `SConstruct` or `scripts/`. If it does, unused sections can be removed outright, which would be worse than a misplacement.
+- Whether the generator's output matches the suggested fix exactly.
 
 ### 3.3 Medium: dead code in `rsip_image_rsa.c`
 
@@ -111,9 +145,13 @@ These are outside this branch's own code. Please confirm both target commits are
 - `!test/flash_with_key_rsa_rsip.sh` comment says "ECC_pub_5.rkey". It should say `RSA_pub_rsip.rkey`.
 - Both scripts' header comments say the ELF is read with `readelf` to find the key location. They do not do that. The script takes the address as `$2`.
 
-### 3.8 Low: implicit macro in the RSIP test project
+### 3.8 Withdrawn: implicit macro in the RSIP test project
 
-The `ra8m1_ek_rsip_e51a_protected_rsa` project does not define `MCUBOOT_USE_RSIP_PROTECTED`. It is auto-defined by `mcuboot_config.h` from the BSP feature macro. That works. Consider adding a comment, or set the macro explicitly as the SCE9 project does.
+This was a mistake in the first draft. `MCUBOOT_USE_RSIP_PROTECTED` is auto-defined, so no change is needed.
+
+- `test_files/ra_cfg/mcu-tools/include/mcuboot_config/mcuboot_config.h:14-17` defines it when `BSP_FEATURE_RSIP_RSIP_E51A_SUPPORTED` is set. `ra8m1/bsp_feature.h:491` sets that feature to 1 for RA8M1.
+- The `#ifndef` guard means an explicit project define is harmless.
+- The `ra8m1_ek_rsip_e51a_protected_fast_boot` project (`projects/rm_mcuboot_port.xml:1206`) defines the macro explicitly. The `_protected_rsa` project relies on the auto-define. The two projects are inconsistent but both work. Consistency is optional.
 
 ---
 
