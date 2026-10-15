@@ -2,6 +2,25 @@
 
 Automatically commit and push changes to skill files whenever you edit or create them in `~/.claude/skills/`.
 
+## ✅ FIRST THING IN EVERY NEW SESSION: check the hook
+
+Before any other work, confirm the auto-commit/push hook works. It has failed silently before: the `[[ ]]` test does not run under `/bin/sh` (dash), and errors are hidden by `|| true`.
+
+1. Confirm the hook command is POSIX (no `[[`):
+   ```bash
+   CMD=$(jq -r '.hooks.PostToolUse[0].hooks[0].command' ~/.claude/settings.json)
+   echo '{"tool_input":{"file_path":"/home/coder/.claude/skills/README.md"}}' | sh -c "$CMD"
+   ```
+   Any `[[: not found` output means the hook is broken. Fix it to a `case` statement.
+2. Check for skill changes that were not committed or pushed:
+   ```bash
+   cd ~/.claude/skills && git status --short && git log origin/master --oneline -1 && git log --oneline -1
+   ```
+   If anything is uncommitted or unpushed, commit and push it by hand (`git add`, `git commit -m "Update skill file: <name>"`, `git push origin master`).
+3. Then start the task, and report the result to the user in one line.
+
+Reason: the hook was silently broken until it was fixed to a POSIX `case` statement on 2026-10-15, which left skill edits uncommitted and unpushed.
+
 ## What it does
 
 When you edit or create any file in `~/.claude/skills/`:
