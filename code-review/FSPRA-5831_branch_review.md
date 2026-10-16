@@ -70,6 +70,13 @@ The hash check passes, but it only proves the committed files match the database
 
 **Recommendation:** adopt the single script after the fixes in items 1–4, and update the five `flash_script_args` entries (or the harness) in the same change. Check that the harness and the RFP version both accept the new arguments. Nothing here has been run against the harness or hardware.
 
+**Status: fix applied, not committed.** The change is on local branch `claude/flash-with-key-single-script`, in worktree `/tmp/claude-5831-flash-fix`, based on `5e7e8866cad`.
+- **New script** `ra/fsp/src/rm_mcuboot_port/!test/flash_with_key.sh` (executable). It has the shebang and the argument, SREC, hex, and key-file checks. It exits 1 after 20 failed attempts and prints `Retry` only between attempts. Tested with a fake `rfp-cli`: wrong argument count, `0x` prefix, missing SREC, missing key, success, and 20 failed attempts all return the expected status. `bash -n` passes. Not run against RFP or hardware.
+- **Harness unchanged.** `flash_script_args` now reads `['g_pub_key', 'key_file']`, and each entry sets a `key_file` field in `test_info_init`. The harness already reads any field listed in `flash_script_args`, so no harness change is needed.
+- **XML** `projects/rm_mcuboot_port.xml`: four active entries updated (lines 764, 863, 980, 1107). Mapping: `RSA_pub.rkey` for `ra6m5_ek_sce9_protected_rsa`, `ECC_pub_5.rkey` for `ra6m4_ek_sce9_protected_fast_boot`, `RSA_pub_rsip.rkey` for `ra8m1_ek_rsip_e51a_protected_rsa`, `ECC_pub_rsip.rkey` for `ra8m1_ek_rsip_e51a_protected_fast_boot`. The fifth line (1235) is in a disabled `<?ignore` block (`ra6e1_fpb_sce9_protected_ecc`) and was updated for consistency only.
+- **Old scripts** (`flash_with_key_ecc.sh`, `_ecc_rsip.sh`, `_rsa.sh`, `_rsa_3072.sh`, `_rsa_rsip.sh`) are still in the branch. Remove them after a harness run confirms the new path works. `flash_with_key_rsa_3072.sh` is not referenced by any XML entry on this branch.
+- **Not committed.** Review the diff in the worktree, then commit it on the project branch yourself.
+
 ---
 
 ## 4. Checks that look correct
