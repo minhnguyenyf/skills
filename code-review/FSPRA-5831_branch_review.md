@@ -1,194 +1,79 @@
-# Review: FSPRA-5831_mcb_protected_ra8_hh vs develop
+# Review: FSPRA-5831_mcb_protected_ra8_hh vs develop (updated)
 
-**Status:** Draft for review. Not committed.
+**Status:** Draft for review. Not committed to the project repo.
 **Written for:** Minh Nguyen (branch author), for review before the branch is merged.
-**Base:** `develop` (merge-base `fa0f40d57cd`) · **Head:** `9bb44da1dd2`
-**Size:** 56 commits · 75 files · +11,557 / −42. About 10k of the added lines are generated linker scripts under `!linker/`.
+**Base:** `develop` (merge-base `2d3e264b138`) · **Head:** `5e7e8866cad` ("FSPRA-5831 Fix backward compatibility issue", 2026-10-16)
+**Size:** 85 commits · 552 files · +2,534 / −625. This replaces the 2026-10-13 review, which covered head `9bb44da1dd2` (56 commits, 75 files).
 
 ---
 
 ## 1. Verdict
 
-Not ready to merge as-is. There is one blocking item and two items that will likely fail CI.
+Mostly ready. The previous blocking item and the SCE9 key regression are fixed. Two items are still open before merge: the submodule pointer needs sign-off, and the generated linker files have not been checked against a fresh regeneration.
 
-| # | Severity | Finding | Where |
-|---|----------|---------|-------|
-| 1 | **Blocking** | Hand-edited collected files fail the pipeline hash check (5 files). | `ra/fsp/src/bsp/mcu/ra8m1/!linker/{gcc,llvm}/…` vs `data/collected-files/ddsc-generated.yml` |
-| 2 | **High** | The SCE9 key section is no longer kept by the ra8m1 gcc/llvm boot and image linker scripts. This is a silent regression for SCE9 devices. | same 5 files |
-| 3 | Medium | Unused PSS helper (`pss_mgf1`), unused locals and macros, and a stale comment in `rsip_image_rsa.c`. May break `-Werror`. | `rsip/rsip_image_rsa.c:86-178` |
-| 4 | Medium | Usage notes still describe `mcuboot_sce9_key` for the RSIP flow. Two new sections are generic and not tied to this feature. | `rm_mcuboot_port/!dsn/rm_mcuboot_port_usage_notes.md` |
-| 5 | Medium | Submodule pointers move (`crypto_procedures_protected`, `ra/mcu-tools/MCUboot`). Needs explicit sign-off. | submodule gitlinks |
-| 6 | Low | Stray `\` after two `</exclude>` tags. | `projects/rm_mcuboot_port.xml:1028`, `:1156` |
-| 7 | Low | Copy-paste comments in the RFP key-install scripts. | `rm_mcuboot_port/!test/flash_with_key_*_rsip.sh` |
-| 8 | Low | RSIP test project relies on an implicit auto-define of `MCUBOOT_USE_RSIP_PROTECTED`. | `projects/rm_mcuboot_port.xml` (`ra8m1_ek_rsip_e51a_protected_rsa`) |
-
----
-
-## 2. What the branch does
-
-Adds MCUboot protected-mode support for RA8 using the RSIP-E51A engine, alongside the existing SCE9 path.
-
-1. **Crypto stack split.** `custom_crypto_stacks/protected_mode/` becomes `sce9/` (moved, content unchanged). A new `rsip/` directory holds the RSIP implementation: `rsip_image_rsa.c`, `rsip_image_ec256.c`, `rsip_keys.c/.h`, `rsip_sha256.h`, `rsip_ecdsa_p256.h`. Verification calls `R_RSIP_ECDSA_Verify` / `rsassaPssVerify` against keys placed in `.mcuboot_rsip_key`.
-2. **Module descriptions.** `rm_mcuboot_protected_mode` is renamed to `rm_mcuboot_sce9_protected_mode`. A new `rm_mcuboot_rsip_protected_mode` is added. Each is gated on the device's RSIP or SCE9 support. The SCE9 test constraints are updated to the new module IDs.
-3. **Config.** `mcuboot_config.h` selects `MCUBOOT_USE_RSIP_PROTECTED` or `MCUBOOT_USE_SCE9_PROTECTED` from BSP feature macros. It also sets `MCUBOOT_BYPASS_KEY_MATCH` for RSIP, so plaintext keys are never read.
-4. **Build plumbing.** `SConstruct` gets `boot_rsa` and `boot_app_rsa` project types, with `test_files/shared/common_{boot,boot_app}_rsa.xml`. `scripts/dependency_tree/build_tree.py` is updated to match.
-5. **Projects.** New `rm_mcuboot_app_protected_rsa.xml`. A new `boot_app` entry in `rm_mcuboot_app_protected.xml`. New RSIP test projects in `rm_mcuboot_port.xml`. One existing project is wrapped in `<?ignore ?>`.
-6. **Test support.** RFP key-install scripts and `.rkey` files. Test runner and `rm_mcuboot_port_data.c` updated for RSIP.
-7. **Other.** Release note `documents/release_notes/upcoming/FSPRA-5831.yml`, usage-note additions, submodule pointer bumps.
+| # | Severity | Finding | Status at `5e7e8866cad` |
+|---|---|---|---|
+| 1 | Blocking | Hand-edited ra8m1 linker files fail the collected-file hash check | **Fixed.** 80 of 80 ra8m1 entries match. The generator template now emits `.mcuboot_wrapped_key`, and the hash database was updated in `582559c593e`. Open: confirm a fresh regeneration produces the same files (section 3.1). |
+| 2 | High | SCE9 key section no longer kept by ra8m1 linker scripts | **Fixed.** Boot and image scripts keep both `.mcuboot_sce9_key` and `.mcuboot_wrapped_key` for gcc, llvm, iar, and ac6. |
+| 3 | Medium | Dead code in `rsip_image_rsa.c` | **Fixed.** `pss_mgf1`, `pss_zeros`, and the unused locals are gone. `PSS_HLEN` is still used. |
+| 4 | Medium | Usage notes still describe `mcuboot_sce9_key` for RSIP, and generic VTOR and multi-image sections | **Partly fixed.** The generic sections are removed. The RSIP steps now name `mcuboot_sce9_key or mcuboot_wrapped_key` and should name only `mcuboot_wrapped_key` (section 3.2). |
+| 5 | Medium | Submodule pointers move | **Partly fixed.** `ra/mcu-tools/MCUboot` is back at develop's `b839cbc4f84`. `crypto_procedures_protected` is still moved (`4ee8bf03` → `87a17fac`) and needs explicit sign-off. |
+| 6 | Low | Stray `\` after `</exclude>` in `projects/rm_mcuboot_port.xml` | **Fixed.** No match remains. |
+| 7 | Low | RFP key-install script comments | **Partly fixed.** The ECC copy-paste comment is gone. `flash_with_key_rsa_rsip.sh` still says the ELF is read with `readelf`, but the script takes the address as `$2`. |
+| 8 | Low | Implicit `MCUBOOT_USE_RSIP_PROTECTED` define | **Withdrawn** in the earlier review. No change needed. |
 
 ---
 
-## 3. Findings
+## 2. What changed since the 2026-10-13 review
 
-### 3.1 Blocking: collected-file hashes do not match
+- **Key section renamed to `.mcuboot_wrapped_key`.** The RSIP stack (`rsip/rsip_keys.c`) uses it. The SCE9 stack still uses `.mcuboot_sce9_key`. Both are kept, so an image built for either engine finds its key.
+- **Generator template** `scripts/mcu_xml_gen/templates/linker_policy_template.j2` gets two new lines for `.mcuboot_wrapped_key` with `keep: True`. The generated ra8m1 files now match that output.
+- **Collected-file database** `data/collected-files/ddsc-generated.yml` changed by about 950 lines (`582559c593e`). That is the normal flow after a regeneration, but see section 3.1.
+- **Module rename finished.** `rm_mcuboot_protected_mode` is kept for the SCE9 stack, and `rm_mcuboot_rsip_protected_mode` is added. No dangling references were found in `ra/`, `projects/`, `scripts/`, or `test_files/`.
+- **Last commit** (`5e7e8866cad`, "Fix backward compatibility issue") changes the SCE9 constraints in `r_sce_protected` and `r_sce_protected_cavp`, the `rm_mcuboot_port` module XML, and the protected-mode module description.
+- **New RSIP CAVP test tree** `ra/fsp/src/r_rsip_e11a_protected_cavp/!test/`. Only its file list was checked, not its contents.
 
-`scripts/pipeline/check_collected_files.sh` stage 1 compares every file in `data/collected-files/ddsc-generated.yml` with its stored SHA-256. I ran the same check on the working tree (1,840 entries).
+---
 
-Five files fail:
+## 3. Open items
 
-```
-ra/fsp/src/bsp/mcu/ra8m1/!linker/gcc/boot/fsp_gen.ld
-ra/fsp/src/bsp/mcu/ra8m1/!linker/gcc/fsp_gen.ld
-ra/fsp/src/bsp/mcu/ra8m1/!linker/gcc/image/fsp_gen.ld
-ra/fsp/src/bsp/mcu/ra8m1/!linker/llvm/boot/fsp_gen.lld
-ra/fsp/src/bsp/mcu/ra8m1/!linker/llvm/image/fsp_gen.lld
-```
+### 3.1 Generated linker files must match a fresh regeneration
+The hash check passes, but it only proves the committed files match the database. Commit `582559c593e` updated the database to the committed files. The check does not prove that the generator, run again, produces the same files. Before merge, regenerate the ra8m1 linker files through the generator and confirm `git diff` is empty.
 
-Each one has a single line changed, `KEEP(*(.mcuboot_sce9_key))` → `KEEP(*(.mcuboot_rsip_key))`. These are generated files that were edited by hand. The pipeline rule is: never hand-edit a collected file. Under the current process, this change needs to come from the generator (`scripts/mcu_xml_gen/templates/linker_policy_template.j2`, which already has the wildcard). The collected-file DB then needs to be updated through the normal collection path.
+### 3.2 Usage notes
+`rm_mcuboot_port/!dsn/rm_mcuboot_port_usage_notes.md` lines 597, 624–625, 648–649 still say "mcuboot_sce9_key or mcuboot_wrapped_key". The RSIP steps (lines 648–649) should name `mcuboot_wrapped_key` only.
 
-The pipeline will fail at this stage. This is the same failure mode as the QSPI work in the `mcuboot-port-ospi` skill (2026-10-09 entry).
+### 3.3 Submodule pointer
+`ra/fsp/src/r_rsip_protected/crypto_procedures_protected` moves from `4ee8bf03ada` to `87a17facd89`. Confirm that commit is intended and reviewed. This review did not diff it.
 
-### 3.2 High: the SCE9 public key loses its placement instruction (gcc and llvm)
-
-**Background: what a linker script does**
-
-The linker script is a placement list. It tells the linker which compiled data goes where in flash. Each piece of data is in a named *section*. `KEEP(*(.name))` means "place this section in flash, and keep it even if nothing references it."
-
-**What the SCE9 code does**
-
-- `sce9/sce9_keys.c:10` tags the public key `g_pub_key` with the section name `.mcuboot_sce9_key`.
-- The SCE9 signature check reads the key from that section.
-
-**What this branch changed**
-
-On `develop`, the gcc and llvm `boot` and `image` scripts contain `KEEP(*(.mcuboot_sce9_key))`. On this branch, that line is replaced by `KEEP(*(.mcuboot_rsip_key))`. Nothing in these scripts now mentions `.mcuboot_sce9_key`.
-
-```
-develop:  boot script = "keep .mcuboot_sce9_key"        SCE9 key placed, kept
-branch:   boot script = "keep .mcuboot_rsip_key"        SCE9 key has no rule
-```
-
-**Why this matters**
-
-- With no rule, the linker places the SCE9 key wherever its default rules choose, or drops it if unused data is removed. Either way, the key may not be where the bootloader reads it.
-- The key install step writes the key to the address the `.map` file reports. If the key is not in the expected place, that step and the signature check can disagree.
-- I have not linked an image, so I cannot confirm this happens. It is the risk the missing line creates.
-
-**Scope**
-
-- **gcc and llvm**: affected. Both SCE9 `boot` and `image` builds use these scripts.
-- **ac6 and iar**: SCE9 is not affected. Their SCE9 scripts still keep `.mcuboot_sce9_key`.
-- **ac6 and iar, RSIP** (`boot_rsa` and `image_rsa` folders): the same problem in reverse. Those scripts keep only `.mcuboot_sce9_key` and never place `.mcuboot_rsip_key`. The RSIP key has no rule on those toolchains.
-
-**Suggested fix**
-
-1. In the gcc and llvm scripts, keep both sections, for example `KEEP(*(.mcuboot_sce9_key))` and `KEEP(*(.mcuboot_rsip_key))`. A wildcard `KEEP(*(.mcuboot_*_key))` also works.
-2. Add the RSIP section to the ac6 and iar RSIP scripts.
-3. Make these changes in the generator template (`scripts/mcu_xml_gen/templates/linker_policy_template.j2`) and regenerate. Do not edit the generated files by hand. Hand edits break the collected-file hash check in finding 3.1.
-4. Verify. Build an SCE9 image and an RSIP image for each toolchain. In each `.map` file, confirm `g_pub_key` sits in the expected section and address.
-
-**Not verified**
-
-- Whether the build uses `--gc-sections`. I found no reference to it in `SConstruct` or `scripts/`. If it does, unused sections can be removed outright, which would be worse than a misplacement.
-- Whether the generator's output matches the suggested fix exactly.
-
-### 3.3 Medium: dead code in `rsip_image_rsa.c`
-
-Correction to the earlier draft: the manual PSS code is not present in this file. The function ends at the comment on lines 175-178, which says the manual code "is kept as reference/fallback", but no such code follows. The comment is stale.
-
-What is dead, in `ra/fsp/src/rm_mcuboot_port/custom_crypto_stacks/protected_mode/rsip/rsip_image_rsa.c`:
-
-| Lines | Symbol | Status |
-|-------|--------|--------|
-| 86 | `static const uint8_t pss_zeros[8]` | Never referenced |
-| 96-123 | `static void pss_mgf1(...)` | Never called in this file (`grep` finds only the definition) |
-| 135 | `uint8_t em[PSS_EMLEN]` in `rsip_bootutil_cmp_rsasig` | Declared, never used |
-| 136 | `uint8_t db_mask[PSS_MASK_LEN]` | Declared, never used |
-| 137 | `uint8_t h2[PSS_HLEN]` | Declared, never used |
-| 134, 138 | `ctx` and `i` | Declared, never used |
-| 66-84 | `PSS_*` macros | Only used by the dead code above |
-
-The SCE9 version (`sce9/sce9_image_rsa.c:216`) does call `pss_mgf1()`, because it does the PSS check in software. The RSIP version delegates the whole check to `g_rsip_on_rsip.rsassaPssVerify`, so the software PSS path is not needed here.
-
-Impact: these are unused locals and unused statics. I did not compile the file, so I cannot say which warnings the toolchain emits. With `-Wall -Werror`, `-Wunused-function` (for `pss_mgf1`) and `-Wunused-variable` (for the locals) would likely fail the build. Compile the file to confirm.
-
-**Suggested fix:** delete `pss_zeros`, `pss_mgf1`, the unused `PSS_*` macros and locals, and the stale comment on lines 175-178. Keep only the RSIP delegation path, so the file matches its actual behavior.
-
-### 3.4 Medium: usage notes
-
-- `rm_mcuboot_port/!dsn/rm_mcuboot_port_usage_notes.md` lines 530, 558, 582, 606 still say "install the key to the `mcuboot_sce9_key` section". For the RSIP flow the section is `mcuboot_rsip_key`.
-- The new sections "VTOR Configuration Support" and "Multi-Image Support" are generic text. I did not verify them against code. The multi-image text refers to a "Multi-Image Bootloader Setup section" that I did not find in this file. Either tie them to this feature with real content, or drop them from this branch.
-
-### 3.5 Medium: submodule pointers
-
-- `ra/fsp/src/r_rsip_protected/crypto_procedures_protected`: `4ee8bf03` → `87a17fac`.
-- `ra/mcu-tools/MCUboot`: `b839cbc4` → `c87495c8`.
-
-These are outside this branch's own code. Please confirm both target commits are intended and reviewed. I did not diff the MCUboot range, so I cannot say whether its `bootutil` changes affect the RSIP path.
-
-### 3.6 Low: stray backslashes in the XML
-
-`projects/rm_mcuboot_port.xml` lines 1028 and 1156 end with `</exclude>\`. The parser ignores the text, but it is a typo. Remove the backslash.
-
-### 3.7 Low: RFP key-install scripts
-
-- `!test/flash_with_key_rsa_rsip.sh` comment says "ECC_pub_5.rkey". It should say `RSA_pub_rsip.rkey`.
-- Both scripts' header comments say the ELF is read with `readelf` to find the key location. They do not do that. The script takes the address as `$2`.
-
-### 3.8 Withdrawn: implicit macro in the RSIP test project
-
-This was a mistake in the first draft. `MCUBOOT_USE_RSIP_PROTECTED` is auto-defined, so no change is needed.
-
-- `test_files/ra_cfg/mcu-tools/include/mcuboot_config/mcuboot_config.h:14-17` defines it when `BSP_FEATURE_RSIP_RSIP_E51A_SUPPORTED` is set. `ra8m1/bsp_feature.h:491` sets that feature to 1 for RA8M1.
-- The `#ifndef` guard means an explicit project define is harmless.
-- The `ra8m1_ek_rsip_e51a_protected_fast_boot` project (`projects/rm_mcuboot_port.xml:1206`) defines the macro explicitly. The `_protected_rsa` project relies on the auto-define. The two projects are inconsistent but both work. Consistency is optional.
+### 3.4 RFP script comment
+`ra/fsp/src/rm_mcuboot_port/!test/flash_with_key_rsa_rsip.sh` line 6 says the ELF is read with `readelf`. The script takes the address as `$2`. Fix the comment or the script.
 
 ---
 
 ## 4. Checks that look correct
 
-- The `SConstruct` changes for `boot_rsa` and `boot_app_rsa` follow the same pattern as `boot` and `boot_app`. The sign condition is extended correctly.
-- The SCE9 rename is applied in both `r_sce_protected/.xml_tests/constraints.yml.j2` and `r_sce_protected_cavp/.xml_tests/constraints.yml.j2`.
-- `rsip_ecdsa_p256.h` and `rsip_sha256.h` keep the same unaligned-buffer handling (`MCUBOOT_CHECK_32BIT_UNALIGNED`) as the SCE9 code.
-- `rsip_image_ec256.c`: in the RSIP branch, `bootutil_verify_sig` does not read the plaintext `bootutil_keys[]`. The `key_id` selects the wrapped key directly.
-- The working tree is clean. The only untracked path is `ra/arm/mbedtls-v4/`, which is not part of this branch.
+- All 80 ra8m1 collected-file hashes match the database (checked from a `git archive` of the branch, not the working tree).
+- Both key sections are kept in boot and image linker scripts for gcc, llvm, iar, and ac6 (`fsp_gen.ld`, `.lld`, `.icf`, `.scat`).
+- No stray backslash after `</exclude>` in `projects/rm_mcuboot_port.xml`.
+- The `PSS_HLEN` define in `rsip_image_rsa.c` is still used.
 
 ---
 
 ## 5. Not verified
 
-- No build was run (gcc, llvm, or ac6).
+- No build was run (gcc, llvm, ac6, or iar). The branch was not checked out. The review used `git show` and `git archive`, so the working tree is unchanged.
 - No hardware test was run.
-- The `.map` file was not inspected.
-- The usage-note VTOR and multi-image text was not checked against code.
-- The submodule commits were not reviewed.
-
-Recommended verification before merge:
-1. Regenerate the ra8m1 linker scripts through the generator and confirm the collected-file check passes.
-2. Build `rm_mcuboot_port` with `ra8m1_ek` for: SCE9 `boot`, SCE9 `boot_app`, RSIP `boot_rsa`, RSIP `boot_app_rsa`.
-3. Check `g_pub_key` placement in each `.map` file.
-4. Run the RSIP RSA and ECC tests on hardware.
+- The 552-file diff was not read line by line. The RSIP CAVP test tree and the large ra8m1 linker change were sampled, not fully reviewed.
+- The generated linker files were not compared with regeneration output (section 3.1).
+- The `crypto_procedures_protected` commit was not reviewed (section 3.3).
 
 ---
 
-## 6. Process notes from the project skills
+## 6. Recommended before merge
 
-From `~/.claude/skills/important-rules`:
-- Do not auto-commit to `/home/coder/workspace/peaks/`. This report is untracked and has not been committed.
-- `ra/arm/mbedtls-v4/` is read-only. This branch does not change it.
-
-From `~/.claude/skills/mcuboot-port-ospi/SKILL.md`:
-- The `.module_descriptions/` list there still names `rm_mcuboot_protected_mode`. It is now `rm_mcuboot_sce9_protected_mode` and `rm_mcuboot_rsip_protected_mode`. The skill should be updated after this branch lands.
-- The 2026-10-09 entry in that skill records the same collected-file problem from the QSPI work. The rule is to change the generator, not the output files.
-
-Note: `/claude/skills` does not exist on this machine. I read the skills in `/home/coder/.claude/skills`.
+1. Regenerate the ra8m1 linker files and confirm no diff (section 3.1).
+2. Fix the usage notes RSIP wording and the RFP script comment (sections 3.2 and 3.4).
+3. Get sign-off for the `crypto_procedures_protected` pointer (section 3.3).
+4. Build `rm_mcuboot_port` for ra8m1_ek: the SCE9 projects and the RSIP projects `ra8m1_ek_rsip_e51a_protected_rsa` and `ra8m1_ek_rsip_e51a_protected_fast_boot` (the `boot_rsa` project type was removed in `9a88f39b796`). Check `.mcuboot_sce9_key` and `.mcuboot_wrapped_key` in each map file.
+5. Run the RSIP RSA and ECC tests on hardware.
