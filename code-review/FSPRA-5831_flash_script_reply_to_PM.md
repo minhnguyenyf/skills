@@ -31,7 +31,7 @@ One script with an explicit key file fixes both problems in one place.
 |---|---|
 | `flash_with_key.sh` (new) | Checks the argument count, the SREC file, the key address (hex, no `0x`), and the key file. Retries RFP up to 20 times. Exits 1 if all attempts fail. |
 | Five old scripts | Now thin wrappers. Each keeps its old two-argument call and forwards to `flash_with_key.sh` with its own key. Existing callers keep working. |
-| `projects/rm_mcuboot_port.xml` | Four active test entries call `flash_with_key.sh` and pass the key file name through the existing `test_info_init` mechanism. The harness code does not change. |
+| `projects/rm_mcuboot_port.xml` | Four active test entries call `flash_with_key.sh` and pass the key file name through the existing `test_info_init` mechanism. The field is named `pub_key_file`, as in your example, and `flash_script_args` lists `['g_pub_key', 'pub_key_file']`. The harness code does not change. |
 
 Key mapping:
 
