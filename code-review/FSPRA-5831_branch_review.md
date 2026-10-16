@@ -19,7 +19,7 @@ Mostly ready. The previous blocking item and the SCE9 key regression are fixed. 
 | 4 | Medium | Usage notes still describe `mcuboot_sce9_key` for RSIP, and generic VTOR and multi-image sections | **Partly fixed.** The generic sections are removed. The RSIP steps now name `mcuboot_sce9_key or mcuboot_wrapped_key` and should name only `mcuboot_wrapped_key` (section 3.2). |
 | 5 | Medium | Submodule pointers move | **Partly fixed.** `ra/mcu-tools/MCUboot` is back at develop's `b839cbc4f84`. `crypto_procedures_protected` is still moved (`4ee8bf03` → `87a17fac`) and needs explicit sign-off. |
 | 6 | Low | Stray `\` after `</exclude>` in `projects/rm_mcuboot_port.xml` | **Fixed.** No match remains. |
-| 7 | Low | RFP key-install script comments | **Partly fixed.** The ECC copy-paste comment is gone. `flash_with_key_rsa_rsip.sh` still says the ELF is read with `readelf`, but the script takes the address as `$2`. |
+| 7 | Low | RFP key-install script comments | **Partly fixed.** The ECC copy-paste comment is gone. `flash_with_key_rsa_rsip.sh` still says the ELF is read with `readelf`, but the script takes the address as `$2`. A PM proposal replaces the five scripts with one (section 3.5). |
 | 8 | Low | Implicit `MCUBOOT_USE_RSIP_PROTECTED` define | **Withdrawn** in the earlier review. No change needed. |
 
 ---
@@ -49,6 +49,27 @@ The hash check passes, but it only proves the committed files match the database
 ### 3.4 RFP script comment
 `ra/fsp/src/rm_mcuboot_port/!test/flash_with_key_rsa_rsip.sh` line 6 says the ELF is read with `readelf`. The script takes the address as `$2`. Fix the comment or the script.
 
+### 3.5 RFP flash scripts: proposed single script (PM)
+**Proposal:** replace the five per-key scripts (`flash_with_key_ecc.sh`, `flash_with_key_ecc_rsip.sh`, `flash_with_key_rsa.sh`, `flash_with_key_rsa_3072.sh`, `flash_with_key_rsa_rsip.sh`) with one `flash_with_key.sh <srec> <key_address_hex> <key_file>`. The key file is a third argument, not hard-coded.
+
+**What the proposal fixes**
+- **Exit status.** A failure after 20 attempts now exits 1. The current scripts end with `echo` and exit 0, so a caller sees success.
+- **Explicit inputs.** The argument count and the key file's existence are checked. This also removes the risk of a script using the wrong key, such as `ECC_pub_5.rkey` in one script and `ECC_pub_rsip.rkey` in another.
+- **Shell safety.** `set -u` catches unset variables.
+- **Clearer usage.** A usage line is printed on wrong arguments.
+
+**Problems to fix before adopting it**
+1. **Callers break.** The harness (`fsp_test_parallel.py`, around line 507) runs `script <srec> <flash_script_args…>`. Each `flash_script_args` value is looked up as a key in the project dictionary. The current entries are `['g_pub_key']` in `projects/rm_mcuboot_port.xml` at lines 764, 863, 980, 1107, and 1235. The proposed script exits with status 2 when it gets only two arguments. The XML needs the key file for each of those five projects, and the harness must accept it. A literal string such as `'ECC_pub_rsip.rkey'` is not a project key today, so the lookup would fail.
+2. **No shebang in the proposal.** The text starts with `# Usage:`. The `for ((…))` loop needs bash. Run with `sh` (dash), it fails. Add `#!/bin/bash` as the first line.
+3. **Key address not validated.** If `0x` is passed by mistake, the command becomes `-userkey 0x0x…`, and rfp-cli retries 20 times before failing. Add a hex check, for example `[[ "$key_address" =~ ^[0-9A-Fa-f]+$ ]]`.
+4. **SREC not checked.** Add `[ -f "$srec" ]` before the loop.
+5. **Retry message.** `Retry - 20` is printed before the final failure message. This is minor, but the message can be skipped on the last attempt.
+6. **Comments.** The named person and the ticket reference belong in the ticket or usage notes, not in the script.
+
+**What stays right:** the retry loop for the intermittent libjlinkarm error, `set -u`, the key path check, and the exit codes.
+
+**Recommendation:** adopt the single script after the fixes in items 1–4, and update the five `flash_script_args` entries (or the harness) in the same change. Check that the harness and the RFP version both accept the new arguments. Nothing here has been run against the harness or hardware.
+
 ---
 
 ## 4. Checks that look correct
@@ -73,7 +94,7 @@ The hash check passes, but it only proves the committed files match the database
 ## 6. Recommended before merge
 
 1. Regenerate the ra8m1 linker files and confirm no diff (section 3.1).
-2. Fix the usage notes RSIP wording and the RFP script comment (sections 3.2 and 3.4).
+2. Fix the usage notes RSIP wording and the RFP script comment (sections 3.2 and 3.4). If the PM's single script is adopted, apply the fixes in section 3.5 and update the five `flash_script_args` entries in `projects/rm_mcuboot_port.xml` (lines 764, 863, 980, 1107, 1235) together with the harness.
 3. Get sign-off for the `crypto_procedures_protected` pointer (section 3.3).
 4. Build `rm_mcuboot_port` for ra8m1_ek: the SCE9 projects and the RSIP projects `ra8m1_ek_rsip_e51a_protected_rsa` and `ra8m1_ek_rsip_e51a_protected_fast_boot` (the `boot_rsa` project type was removed in `9a88f39b796`). Check `.mcuboot_sce9_key` and `.mcuboot_wrapped_key` in each map file.
 5. Run the RSIP RSA and ECC tests on hardware.
