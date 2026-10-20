@@ -35,6 +35,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | Skill | What it covers |
 |---|---|
 | `mcuboot-port-ospi` | `rm_mcuboot_port`, OSPI_B (RA8D1) and QSPI (RA6M5) secondary slots, flash map selection, hardware-run reports |
+| `mcuboot-rsip-protected` | FSPRA-5831 RSIP protected mode: device gating (RA8M1/RA8D1), `g_mcuboot_rsip_ctrl` naming, `.mcuboot_wrapped_key`, `r_rsip.h` include paths, flash-key scripts, build failures seen |
 
 ## 🧭 `common/`: rules and tooling
 
@@ -43,10 +44,12 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `important-rules` | Commit / push policy by repo type, read-only submodules (`ra/arm/mbedtls-v4/`) |
 | `auto-commit-skills` | `PostToolUse` hook that commits and pushes skill edits, plus setup script |
 | `budget-optimization` | Keeping token spend down: model choice, context size, subagents |
+| `knowledge-capture` | Rule: save MCUboot and mbedTLS v3/v4 findings to the matching skill folder, so future sessions don't re-investigate |
 
 ## 🔍 `code-review/`
 
-- `FSPRA-5831_branch_review.md`: review of the `FSPRA-5831_mcb_protected_ra8_hh` branch against `develop`.
+- `FSPRA-5831_branch_review.md`: review of the `FSPRA-5831_mcb_protected_ra8_hh` branch against `develop`, with status of earlier findings and open items.
+- `FSPRA-5831_flash_script_reply_to_PM.md`: reply to the PM on the single key-install script (`flash_with_key.sh`), with the reasons, changes, and open questions.
 
 ---
 
