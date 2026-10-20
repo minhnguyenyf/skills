@@ -7,6 +7,22 @@
 
 ---
 
+## 0. Merge status (checked 2026-10-20)
+
+- **Merged to develop:** head `236c7b25d83` ("FSPRA-5831 MCUBoot PM RA8", Hien Huynh, 2026-10-18), brought in by merge `c81c1342031` (Michael Thomas, 2026-10-18). That head is not an ancestor of `5e7e8866cad`, so the merged line and this review's head are different lines of history.
+- **What develop has for protected mode:**
+  - `rsip_keys.c` includes `r_rsip_wrapper.h` inside the `MCUBOOT_USE_RSIP_PROTECTED` guard, defines `rsip_ctrl`/`rsip_cfg`, and sets `g_pub_key_len_bytes` from `RSIP_OEM_KEY_SIZE_ECC_SECP256R1_PUBLIC_KEY_INST_DATA_WORD`.
+  - RSA 4096 is not supported (`rsip_image_rsa.c`, `rsip_keys.h`).
+- **What this branch has that develop does not** (diff direction: develop → branch):
+  - RSA 4096 support in `rsip_image_rsa.c` and `rsip_keys.h`.
+  - `g_pub_key_len_bytes` set to `20 * 4U`, and no `r_rsip_wrapper.h` include.
+  - The protected-only cleanup from this review: the `MCUBOOT_USE_RSIP_PROTECTED` non-protected branches removed from `rsip_ecdsa_p256.h` and `rsip_image_ec256.c`, and the `MCUBOOT_RSIP_SHA_CTRL` macro removed.
+  - The device gate on the RSIP protected module (`interface.mcu.rsip.rsip_e51a_protected`).
+- **Branch head since this review:** `b7503c7aa0f` ("FSPRA-5831 Update file"), about 30 commits after `5e7e8866cad`. Not yet merged. Re-review the later commits before merging. The findings in section 1 cover `5e7e8866cad` only.
+- **Open for the team:** develop's `rsip_keys.c` still uses the `r_rsip_wrapper.h` include and the `RSIP_OEM_KEY…` length. Check which of those is intended on the branch before the next merge.
+
+---
+
 ## 1. Verdict
 
 Mostly ready. The previous blocking item and the SCE9 key regression are fixed. Two items are still open before merge: the submodule pointer needs sign-off, and the generated linker files have not been checked against a fresh regeneration.
