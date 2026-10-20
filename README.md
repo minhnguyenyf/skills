@@ -48,8 +48,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 ## 🔍 `code-review/`
 
-- `branch_review.md`: branch review, with status of earlier findings and open items.
-- `flash_script_reply_to_PM.md`: reply on the single key-install script, with reasons, changes, and open questions.
+Notes from past code reviews, kept so future review work can reuse the findings, the checks that worked, and the open items.
 
 ---
 
