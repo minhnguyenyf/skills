@@ -55,7 +55,7 @@ Knowledge from the FSPRA-5831 review and fix session. Verify line numbers agains
 - Not yet run against RFP or hardware.
 
 ## 7. Process notes
-- Reports for review live in `~/.claude/skills/code-review/`. Branch review: `FSPRA-5831_branch_review.md`. PM reply: `FSPRA-5831_flash_script_reply_to_PM.md`.
+- Reports for review live in `~/.claude/skills/code-review/`. Branch review: `branch_review.md`. PM reply: `flash_script_reply_to_PM.md`.
 - Project repo commits are made by the user (commit policy in `common/important-rules`). Claude does not commit or push there.
 - Skills repo edits are auto-committed by the PostToolUse hook when it fires. A log is written to `~/.claude/skill-autocommit.log`. When it doesn't fire, commit and push by hand.
 - `rm_mcuboot_port.xml` project types: `boot_rsa` was removed in `9a88f39b796`. Use the `ra8m1_ek_rsip_e51a_protected_*` projects.

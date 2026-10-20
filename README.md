@@ -48,8 +48,8 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 ## 🔍 `code-review/`
 
-- `FSPRA-5831_branch_review.md`: branch review, with status of earlier findings and open items.
-- `FSPRA-5831_flash_script_reply_to_PM.md`: reply on the single key-install script, with reasons, changes, and open questions.
+- `branch_review.md`: branch review, with status of earlier findings and open items.
+- `flash_script_reply_to_PM.md`: reply on the single key-install script, with reasons, changes, and open questions.
 
 ---
 
