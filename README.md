@@ -29,6 +29,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `cch-psa-driver-scaffold` | 4-layer CCH / PSA driver pattern for `rm_tf_psa_crypto` (+ SVG diagrams) |
 | `test-case-porting-guide` | Checklist for porting test cases between v3 and v4 |
 | `tf-psa-crypto-v4-analysis` | Heap requirement analysis (not yet verified) |
+| `mbedtls-to-psa-test-conversion` | How rm_tf_psa_crypto test cases were moved from mbedtls to PSA: patterns, removals, open items, pitfalls |
 
 ## 🥾 `mcuboot/`: MCUboot port
 
