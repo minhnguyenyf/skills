@@ -1,6 +1,6 @@
 # 🧰 Claude Skills
 
-Personal skill library for Minh Nguyen's work on the **peaks** repository (Renesas RA / FSP, mbedTLS v4 and TF-PSA-Crypto, MCUboot ports).
+Personal skill library for the **peaks** repository (Renesas RA / FSP, mbedTLS and TF-PSA-Crypto, MCUboot).
 
 Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagrams). Claude loads a skill when its description matches the task.
 
@@ -11,8 +11,8 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 ```
 ~/.claude/skills/
 ├── 🔐 psa/           PSA Crypto / mbedTLS v3 → v4 / TF-PSA-Crypto
-├── 🥾 mcuboot/       MCUboot port, QSPI / OSPI external flash, reviews
-├── 🧭 common/        Project rules, commit policy, cost, auto-sync
+├── 🥾 mcuboot/       MCUboot port and protected mode
+├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔍 code-review/   Branch review write-ups
 ├── 🔄 synced/        Anthropic-managed skills (do not edit)
 └── 📄 README.md      This file
@@ -24,18 +24,18 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 | Skill | What it covers |
 |---|---|
-| `mbedtlsv4-tf-psa-crypto-integrated` | Quick start for FSPRA-5629 (mbedTLS 4.1.0 / TF-PSA-Crypto integration) |
+| `mbedtlsv4-tf-psa-crypto-integrated` | Quick start for the mbedTLS 4.1.0 / TF-PSA-Crypto integration |
 | `mbedtls-v4-migration-notes` | v3 ↔ v4 API diffs, littlefs and PSA storage, ECC bus-fault investigation, changelog digest |
 | `cch-psa-driver-scaffold` | 4-layer CCH / PSA driver pattern for `rm_tf_psa_crypto` (+ SVG diagrams) |
 | `test-case-porting-guide` | Checklist for porting test cases between v3 and v4 |
-| `tf-psa-crypto-v4-analysis` | Heap requirement analysis (values still unverified for v4) |
+| `tf-psa-crypto-v4-analysis` | Heap requirement analysis (not yet verified) |
 
 ## 🥾 `mcuboot/`: MCUboot port
 
 | Skill | What it covers |
 |---|---|
-| `mcuboot-port-ospi` | `rm_mcuboot_port`, OSPI_B (RA8D1) and QSPI (RA6M5) secondary slots, flash map selection, hardware-run reports |
-| `mcuboot-rsip-protected` | FSPRA-5831 RSIP protected mode: device gating (RA8M1/RA8D1), `g_mcuboot_rsip_ctrl` naming, `.mcuboot_wrapped_key`, `r_rsip.h` include paths, flash-key scripts, build failures seen |
+| `mcuboot-port-ospi` | MCUboot port, external-flash secondary slots (OSPI and QSPI), flash map selection, hardware-run reports |
+| `mcuboot-rsip-protected` | MCUboot RSIP protected mode: device gating, instance naming, key sections, include paths, flash-key scripts |
 
 ## 🧭 `common/`: rules and tooling
 
@@ -44,12 +44,12 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `important-rules` | Commit / push policy by repo type, read-only submodules (`ra/arm/mbedtls-v4/`) |
 | `auto-commit-skills` | `PostToolUse` hook that commits and pushes skill edits, plus setup script |
 | `budget-optimization` | Keeping token spend down: model choice, context size, subagents |
-| `knowledge-capture` | Rule: save MCUboot and mbedTLS v3/v4 findings to the matching skill folder, so future sessions don't re-investigate |
+| `knowledge-capture` | Rule: save MCUboot and mbedTLS findings to the matching skill folder for future sessions |
 
 ## 🔍 `code-review/`
 
-- `FSPRA-5831_branch_review.md`: review of the `FSPRA-5831_mcb_protected_ra8_hh` branch against `develop`, with status of earlier findings and open items.
-- `FSPRA-5831_flash_script_reply_to_PM.md`: reply to the PM on the single key-install script (`flash_with_key.sh`), with the reasons, changes, and open questions.
+- `FSPRA-5831_branch_review.md`: branch review, with status of earlier findings and open items.
+- `FSPRA-5831_flash_script_reply_to_PM.md`: reply on the single key-install script, with reasons, changes, and open questions.
 
 ---
 
