@@ -1427,3 +1427,44 @@ Gotcha: this machine's shell is zsh, which does not word-split `$VAR` in `gcc $I
 **After editing the module xml the pack must be rebuilt and re-added** in e2 studio, then regenerate the
 project; the already-generated `.cproject` keeps the old include list. Not yet verified with a real ARM
 build of the user flow.
+
+## 25. `MBEDTLS_PLATFORM_SETBUF_MACRO = dummy_setbuf` breaks v4 customer projects (`md.c`, `pkparse.c` undeclared-function errors) (2026-10-21)
+
+**Symptom:** `call to undeclared function 'dummy_setbuf'` (`-Wimplicit-function-declaration`) at `extras/md.c:1007` and `extras/pkparse.c:1268` in a generated customer project (path `/tf_psa_test/...`, which is not in this repo).
+
+**Root cause (verified by reading source):**
+- `include/mbedtls/platform.h:309` defines `mbedtls_setbuf` as `MBEDTLS_PLATFORM_SETBUF_MACRO` when that macro is defined, else `setbuf`.
+- `extras/md.c` (`mbedtls_md_file`, under `MBEDTLS_FS_IO`, line 989) and `extras/pkparse.c` call `mbedtls_setbuf(f, NULL)`.
+- `dummy_setbuf` is declared only in `ra/fsp/src/rm_tf_psa_crypto/inc/rm_tf_psa_crypto.h:62`. `md.c` and `pkparse.c` don't include that header. **v4 has no definition of `dummy_setbuf` anywhere**, so enabling it would also fail at link time.
+- The v4 module description `ra/arm/.module_descriptions/Arm##PSA##Crypto##TF-PSA-Crypto####x.xx.xx.xml` defaulted `config.driver.tf_psa_crypto.mbedtls_platform_setbuf_macro_value` to `dummy_setbuf` (line 817). That is what customer projects get.
+
+**Comparison with v3:**
+- v3 defaults to `dummy_setbuf` in both `rm_psa_crypto_cfg.h:3184` and `rm_psa_crypto_cfg_sw_only.h:2576`, and its module description `Arm##PSA##Crypto##mbedCrypto####x.xx.xx.xml:1022` also defaults to `dummy_setbuf`. Its `library/md.c:936` has the same call under `MBEDTLS_FS_IO`. Not verified whether v3 compiles cleanly, since the same undeclared pattern applies there.
+- The repo's v4 test config `test_files/ra_cfg/fsp_cfg/rm_tf_psa_crypto_cfg.h:598` already has the setbuf macro commented out, so the repo's v4 build uses plain `setbuf`.
+
+**Fix applied (uncommitted, peaks repo):** module description line 817 default changed from `dummy_setbuf` to `setbuf`. CRLF preserved. Verified by `git diff` (one line). **Not verified by a build.**
+
+**Needs:** pack rebuilt and re-added in e2 studio, then project regenerated. A project generated before the change keeps `dummy_setbuf`.
+
+## 26. `threading_internal.h` not found in customer projects (`core/psa_crypto.c:71`) (2026-10-21)
+
+**Symptom:** `fatal error: 'threading_internal.h' file not found` at `core/psa_crypto.c:71` in a generated customer project.
+
+**Root cause (verified by `find` and reading the module XML):**
+- The header is at `ra/arm/mbedtls-v4/tf-psa-crypto/platform/threading_internal.h`. Included by `core/psa_crypto.c:71`, `core/psa_crypto_random.c:16`, `core/psa_crypto_slot_management.c:25`, and `platform/threading.c:12`.
+- `ra/arm/!dsn/tf_psa_crypto_module.xml` `<include_folders>` did not contain `tf-psa-crypto/platform`.
+- The header was not listed in `<sources>`, so customer packs wouldn't ship it. `platform/threading.c` was listed.
+- In v3 the equivalent header is in `library/`, which is already an include folder there, so v3 doesn't hit this.
+
+**Fix applied (uncommitted, peaks repo):** added `<include_folder>ra/arm/mbedtls-v4/tf-psa-crypto/platform</include_folder>` after `core`, and `<source>ra/arm/mbedtls-v4/tf-psa-crypto/platform/threading_internal.h</source>` after `threading.c`. CRLF preserved.
+
+**Verification done:** a file containing only `#include "threading_internal.h"` resolves with the new include folders (`gcc -fsyntax-only -H`, no fatal error).
+**Not verified:** full `psa_crypto.c` preprocess. It needs generated `bsp_api.h` (not in repo). Under zsh, `$I` doesn't word-split. Use `bash -c` when running gcc with multiple `-I` flags.
+
+**Needs:** same pack rebuild and project regeneration as §25.
+
+## 27. Migration-notes file caveats (2026-10-21)
+
+- The section numbering has two entries numbered 21 (the `ra2a1_tbb` RAM overflow and "Board-Specific RAM Overflow Fixes"). Sections 25 and 26 were added after them. Don't renumber without updating cross-references (`§22` etc.).
+- §9 says the ECC bus fault is "FIXED", but the actual change was to skip the test on E31A boards (`psa_crypto_tests_tg5.c`). The `mlist` stale-pointer root cause is not identified as fixed. Treat as open.
+- `mbedtlsv4-tf-psa-crypto-integrated/SKILL.md` has Windows paths (`C:\Workspace\peaks`) and Windows-specific environment notes from an older session. Verify before using.
