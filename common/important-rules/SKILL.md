@@ -18,6 +18,11 @@ This skill documents critical constraints and policies for working on this proje
 - ❌ **Never auto-commit to**: `/home/coder/workspace/peaks/` or any work project
 - **For project repos**: Stage changes, show diff, let user commit manually
 
+### Preview Before Editing
+- ✅ **Always show the change first** (file, old → new, or a diff) and wait for the user's go-ahead before editing any file in a project repo such as `/home/coder/workspace/peaks/`.
+- Applies to every edit, including one-line fixes to XML, config, or headers. Standing preference set by Minh Nguyen; do not skip it because the change looks small.
+- Once approved, make the edit and report what changed.
+
 ### Submodule Constraints
 - ❌ **DO NOT modify**: `ra/arm/mbedtls-v4/` — read-only submodule
 - ❌ **DO NOT modify**: `ra/arm/mbedtls-v4/tf-psa-crypto/` — read-only submodule
