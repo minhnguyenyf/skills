@@ -1501,3 +1501,24 @@ Rules that held:
 
 - In the module, `config.driver.tf_psa_crypto.{aes,ecc,rsa}_format` use `<select enum="enum.mcu.psa_crypto.*_format" />`. The enums are defined per device in the BSP module (`ra/fsp/src/bsp/mcu/<mcu>/.module_descriptions/`). Each enum has `plaintext` (`config.driver.psa_crypto.<alg>_format.plaintext`) and `vendor_plaintext_wrapped`.
 - The module's `default=""` was changed to the `plaintext` option ID. The BSP enum default stays `vendor_plaintext_wrapped`.
+
+## 31. tf-psa-crypto 1.1.0 -> 1.1.1: what changed and what rm_tf_psa_crypto needs (2026-10-23)
+
+Compare the release tags `tf-psa-crypto-1.1.0` and `tf-psa-crypto-1.1.1` inside `ra/arm/mbedtls-v4/tf-psa-crypto`. The plain `v1.1.0`/`v1.1.1` tags point at different commits, so use the `tf-psa-crypto-*` tags.
+
+- **No changes needed in `ra/fsp/src/rm_tf_psa_crypto`.** The folder does not use the version macros, the removed `mbedtls_ecp_get_variant()`, the changed RSA or ChaCha20 error codes, or `mbedtls_rsa_*`/`mbedtls_chacha20_*` directly.
+- **Version macros:** `include/tf-psa-crypto/build_info.h`. `TF_PSA_CRYPTO_VERSION_NUMBER` 0x01010000 -> 0x01010100, `..._STRING` "1.1.0" -> "1.1.1".
+- **RSA PKCS#1 v1.5 errors:** `drivers/builtin/src/rsa.c` returns `PSA_ERROR_INVALID_PADDING` and `PSA_ERROR_BUFFER_TOO_SMALL` instead of `MBEDTLS_ERR_RSA_INVALID_PADDING` and `MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE`. Re-run the RSA tests in `psa_crypto_tests_tg3.c`.
+- **ChaCha20:** `drivers/builtin/src/chacha20.c` adds a counter-exhausted sentinel (`CHACHA20_COUNTER_EXHAUSTED`) and `mbedtls_chacha20_check_counter_wrap()`. `keystream_bytes_used` can now hold the sentinel.
+- **ChaCha20-Poly1305:** `core/psa_crypto.c` rejects plaintexts longer than `UINT32_MAX` blocks, and orders the unlock status check before the operation status (to avoid leaking padding validity). Re-run the tg10 tests.
+- **New file:** `drivers/builtin/src/rsa_invasive.h`, included by `rsa.c` only under `MBEDTLS_TEST_HOOKS`. It is not in `ra/arm/!dsn/tf_psa_crypto_module.xml`; add it only if a test-hooks build is needed.
+- **IAR:** `core/alignment.h` adds a `__packed` push/pop workaround for IAR. Build with IAR to confirm.
+- **Pinned commit:** the submodule may be ahead of the tag. Check `git rev-list --count tf-psa-crypto-1.1.1..HEAD` before reviewing.
+
+## 32. RSIP device mapping and the E50D unification (2026-10-23)
+
+- The RSIP-E50D devices are RA8P1, RA8M2, RA8D2, RA8T2. Confirmed from `BSP_FEATURE_RSIP_RSIP_E50D_SUPPORTED` = 1 and E51A = 0 in each `ra/fsp/src/bsp/mcu/<mcu>/bsp_feature.h`.
+- The RSIP-E51A devices are RA8M1, RA8D1, RA8T1, RA8E1, RA8E2. The BSP for RA8E1 and RA8E2 defines E51A = 1, but the HW Overview table in `rm_psa_crypto_usage_notes.md` did not list them.
+- The HW Overview table in `rm_psa_crypto/!dsn/rm_psa_crypto_usage_notes.md` should be checked against the BSP flags. The E50D row was missing RA8M2, RA8D2 and RA8T2 and was updated. Other rows that differ from the BSP: SCE9 is missing RA4E1 and RA6E1; AES Engine 2 is missing RA2L3; TRNG is missing RA0L1.
+- The `FSPRA-6005` branch makes E50D follow the E51A code paths in the PSA alt-process, netx, and RSIP key-injection code. The E50D driver signatures are in restricted paths and have not been verified (see `branch-review/FSPRA-6005_review.md`, item 2.1).
+- Per-device checks: `BSP_FEATURE_*` flags come from each MCU's `bsp_feature.h`. Use `grep` on those headers, not the `.module_descriptions` XML.
