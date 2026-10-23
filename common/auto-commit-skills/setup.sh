@@ -1,89 +1,60 @@
 #!/bin/bash
-# Auto-Commit Skills Hook Setup
-# Run this script on any device to enable auto-commit for ~/.claude/skills/
-# Usage: bash setup.sh
+# Auto-commit setup for ~/.claude/skills/
+# Installs commit-skills.sh into ~/.claude/hooks and wires two hooks into ~/.claude/settings.json:
+#   PostToolUse (Edit|Write) -> commit and push the edited skill file
+#   Stop                     -> commit and push any other skill changes (Bash edits, mv, rm)
+# Safe to re-run: old auto-commit entries are replaced, not duplicated.
+# Usage: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
 
 set -e
 
+SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
+HOOK_DIR="$HOME/.claude/hooks"
+HOOK_SCRIPT="$HOOK_DIR/commit-skills.sh"
 SETTINGS_FILE="$HOME/.claude/settings.json"
-HOOK_NAME="auto-commit-skills"
 
-echo "🔧 Setting up auto-commit for ~/.claude/skills/ folder..."
+command -v jq >/dev/null 2>&1 || { echo "jq is required (install it first, e.g. sudo apt install jq)"; exit 1; }
+command -v git >/dev/null 2>&1 || { echo "git is required"; exit 1; }
 
-# Ensure settings file exists
-if [ ! -f "$SETTINGS_FILE" ]; then
-    echo "Creating $SETTINGS_FILE..."
-    echo '{}' > "$SETTINGS_FILE"
-fi
-
-# Check if hook already exists
-if grep -q "auto-commit-skills" "$SETTINGS_FILE" 2>/dev/null; then
-    echo "✅ Auto-commit hook already installed in $SETTINGS_FILE"
-    exit 0
-fi
-
-# Create temporary hook configuration
-HOOK_CONFIG=$(cat <<'EOF'
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; if [[ \"$f\" == *\"/.claude/skills/\"* ]]; then cd \"${f%/*}\" && git add \"$f\" && git commit -m \"Update skill file: $(basename \"$f\")\" && git push origin master 2>/dev/null || true; fi; }",
-            "statusMessage": "Committing and pushing skill changes..."
-          }
-        ]
-      }
-    ]
-  },
-EOF
-)
-
-# Merge hook into settings using jq
-if command -v jq &> /dev/null; then
-    # Use jq to merge (preserves existing settings)
-    TEMP=$(mktemp)
-    jq ".hooks //= {} | .hooks.PostToolUse //= [] | .hooks.PostToolUse += [
-      {
-        \"matcher\": \"Edit|Write\",
-        \"hooks\": [
-          {
-            \"type\": \"command\",
-            \"command\": \"jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; if [[ \\\"$f\\\" == *\\\"/.claude/skills/\\\"* ]]; then cd \\\"${f%/*}\\\" && git add \\\"$f\\\" && git commit -m \\\"Update skill file: \$(basename \\\"$f\\\")\\\" && git push origin master 2>/dev/null || true; fi; }\",
-            \"statusMessage\": \"Committing and pushing skill changes...\"
-          }
-        ]
-      }
-    ]" "$SETTINGS_FILE" > "$TEMP"
-    mv "$TEMP" "$SETTINGS_FILE"
-    echo "✅ Hook added to $SETTINGS_FILE"
-else
-    echo "⚠️  jq not found. Please manually add the following to $SETTINGS_FILE:"
-    echo ""
-    echo "Add this inside the root object:"
-    echo "$HOOK_CONFIG"
+if [ ! -d "$HOME/.claude/skills/.git" ]; then
+    echo "~/.claude/skills is not a git repository. Clone the skills repo there first."
     exit 1
 fi
 
-# Verify hook is in place
-if grep -q "auto-commit-skills\|Update skill file" "$SETTINGS_FILE" 2>/dev/null; then
-    echo "✅ Hook configuration verified"
-else
-    # Double-check with a pattern match
-    if grep -q "PostToolUse" "$SETTINGS_FILE" 2>/dev/null; then
-        echo "⚠️  Settings updated but hook verification inconclusive"
-        echo "Please verify $SETTINGS_FILE contains the PostToolUse hook"
-    fi
-fi
+echo "Installing hook script to $HOOK_SCRIPT"
+mkdir -p "$HOOK_DIR"
+cp "$SRC_DIR/commit-skills.sh" "$HOOK_SCRIPT"
+chmod +x "$HOOK_SCRIPT"
 
-echo ""
-echo "📝 Setup complete!"
-echo ""
-echo "Next steps:"
-echo "1. Edit any file in ~/.claude/skills/"
-echo "2. Check: cd ~/.claude/skills && git log --oneline -1"
-echo "3. You should see: 'Update skill file: <filename>'"
-echo ""
-echo "For details, see: ~/.claude/skills/auto-commit-skills/SKILL.md"
+[ -f "$SETTINGS_FILE" ] || echo '{}' > "$SETTINGS_FILE"
+
+POST_CMD='f=$(jq -r '"'"'.tool_input.file_path // .tool_response.filePath // empty'"'"'); [ -n "$f" ] && sh "$HOME/.claude/hooks/commit-skills.sh" "$f"; exit 0'
+STOP_CMD='sh "$HOME/.claude/hooks/commit-skills.sh"'
+
+TEMP=$(mktemp)
+# Drop any earlier auto-commit entries (match on the script name or the old inline message), then add the current ones.
+jq --arg post "$POST_CMD" --arg stop "$STOP_CMD" '
+  def is_autocommit: any(.hooks[]?; (.command // "") | (contains("commit-skills.sh") or contains("Update skill file")));
+  .hooks //= {} |
+  .hooks.PostToolUse = ((.hooks.PostToolUse // []) | map(select(is_autocommit | not))) + [
+    {matcher: "Edit|Write", hooks: [{type: "command", command: $post, statusMessage: "Committing and pushing skill changes..."}]}
+  ] |
+  .hooks.Stop = ((.hooks.Stop // []) | map(select(is_autocommit | not))) + [
+    {hooks: [{type: "command", command: $stop, statusMessage: "Committing any skill changes..."}]}
+  ]
+' "$SETTINGS_FILE" > "$TEMP"
+mv "$TEMP" "$SETTINGS_FILE"
+
+echo "Hooks written to $SETTINGS_FILE"
+
+# Quick check: the PostToolUse command must extract the path and run the script without errors.
+echo '{"tool_input":{"file_path":"'"$HOME"'/.claude/skills/README.md"}}' | sh -c "$POST_CMD" && echo "PostToolUse check passed"
+sh "$HOOK_SCRIPT" && echo "Stop check passed"
+
+cat <<EOF
+
+Setup complete.
+- Log: $HOME/.claude/skill-autocommit.log
+- Verify after an edit: cd ~/.claude/skills && git log --oneline -1
+- Restart Claude Code or review /hooks if the hooks do not run in the current session.
+EOF
