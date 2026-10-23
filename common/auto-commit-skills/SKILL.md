@@ -1,36 +1,57 @@
 # Auto-Commit Skills Folder
 
-Automatically commit and push changes to skill files whenever you edit or create them in `~/.claude/skills/`.
+Commit and push changes under `~/.claude/skills/` automatically, so skill edits reach `origin/master` without manual git commands.
 
-## ✅ FIRST THING IN EVERY NEW SESSION: check the hook
+## FIRST THING IN EVERY NEW SESSION
 
-Before any other work, confirm the auto-commit/push hook works. It has failed silently before: the `[[ ]]` test does not run under `/bin/sh` (dash), and errors are hidden by `|| true`.
-
-1. Confirm the hook command is POSIX (no `[[`):
+1. Check that the hook command is installed and runs:
    ```bash
-   CMD=$(jq -r '.hooks.PostToolUse[0].hooks[0].command' ~/.claude/settings.json)
-   echo '{"tool_input":{"file_path":"/home/coder/.claude/skills/README.md"}}' | sh -c "$CMD"
+   jq -r '.hooks.PostToolUse[] | select(any(.hooks[]?; (.command // "") | contains("commit-skills.sh"))) | .hooks[0].command' ~/.claude/settings.json
    ```
-   Any `[[: not found` output means the hook is broken. Fix it to a `case` statement.
+   If this prints nothing, run `bash ~/.claude/skills/common/auto-commit-skills/setup.sh`.
 2. Check for skill changes that were not committed or pushed:
    ```bash
    cd ~/.claude/skills && git status --short && git log origin/master --oneline -1 && git log --oneline -1
    ```
-   If anything is uncommitted or unpushed, commit and push it by hand (`git add`, `git commit -m "Update skill file: <name>"`, `git push origin master`).
-3. Then start the task, and report the result to the user in one line.
-
-Reason: the hook was silently broken until it was fixed to a POSIX `case` statement on 2026-10-15, which left skill edits uncommitted and unpushed.
+   If anything is uncommitted or unpushed, the Stop hook will commit it at the end of the turn. Check the log at `~/.claude/skill-autocommit.log` for `FAILED` lines.
+3. Report the result in one line, then start the task.
 
 ## What it does
 
-When you edit or create any file in `~/.claude/skills/`:
-1. The file is automatically staged with `git add`
-2. A commit is created with message: `"Update skill file: <filename>"`
-3. Changes are pushed to `origin/master`
+Two hooks run `~/.claude/hooks/commit-skills.sh`:
 
-## Installation
+| Hook | When | What it commits |
+|---|---|---|
+| `PostToolUse` (matcher `Edit\|Write`) | After an Edit or Write to a file under `~/.claude/skills/` | Only that file, message `Update skill file: <name>` |
+| `Stop` | When Claude finishes a turn | Every tracked change plus new files, except `synced/`, message `Update skill files` |
 
-The hook is configured in `~/.claude/settings.json` under the `PostToolUse` event:
+The Stop hook catches changes the PostToolUse hook misses: Bash commands (`cat >>`, `mv`, `rm`) and edits made outside Edit or Write. Both hooks do nothing when nothing is staged, so repeated runs are safe.
+
+Each run pushes to `origin/master`. Successes and failures are appended to `~/.claude/skill-autocommit.log`.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `commit-skills.sh` | The commit and push logic (POSIX `sh`). Copied to `~/.claude/hooks/` by setup. |
+| `setup.sh` | Copies the script and writes both hooks into `~/.claude/settings.json`. Safe to re-run. |
+| `README.md` | Quick start for a new device. |
+
+## Setup on a new device
+
+Prerequisites: `git`, `jq`, SSH access to the skills repo, and `~/.claude/skills/` cloned as a git repo.
+
+```bash
+git clone <skills repo URL> ~/.claude/skills        # skip if already present
+bash ~/.claude/skills/common/auto-commit-skills/setup.sh
+```
+
+`setup.sh` does the following:
+1. Copies `commit-skills.sh` to `~/.claude/hooks/` and makes it executable.
+2. Replaces any earlier auto-commit entries in `~/.claude/settings.json`, then adds the `PostToolUse` and `Stop` hooks. Other settings are kept.
+3. Runs both commands once to check them.
+
+The resulting `settings.json` entries:
 
 ```json
 {
@@ -41,8 +62,19 @@ The hook is configured in `~/.claude/settings.json` under the `PostToolUse` even
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; if [[ \"$f\" == *\"/.claude/skills/\"* ]]; then cd \"${f%/*}\" && git add \"$f\" && git commit -m \"Update skill file: $(basename \"$f\")\" && git push origin master 2>/dev/null || true; fi; }",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty'); [ -n \"$f\" ] && sh \"$HOME/.claude/hooks/commit-skills.sh\" \"$f\"; exit 0",
             "statusMessage": "Committing and pushing skill changes..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$HOME/.claude/hooks/commit-skills.sh\"",
+            "statusMessage": "Committing any skill changes..."
           }
         ]
       }
@@ -51,78 +83,29 @@ The hook is configured in `~/.claude/settings.json` under the `PostToolUse` even
 }
 ```
 
-## How to set up on a new device
-
-Run this command to apply the hook to any new machine:
-
-```bash
-# Ensure ~/.claude/settings.json exists
-touch ~/.claude/settings.json
-
-# Merge the hook into settings (or manually add the PostToolUse hook block above)
-# The hook will automatically fire on the next Edit/Write to ~/.claude/skills/*
-```
+Hooks are per device, since they live in `~/.claude/settings.json`. The skill files sync through git.
 
 ## Verification
 
-To verify the hook is working:
+1. Edit a file in `~/.claude/skills/` with the Edit tool, or make a Bash change and end the turn.
+2. `cd ~/.claude/skills && git log --oneline -1` should show the new commit.
+3. `git log origin/master --oneline -1` should match.
+4. `tail ~/.claude/skill-autocommit.log` should show `OK`.
 
-1. Edit any file in `~/.claude/skills/`
-2. Check git log: `cd ~/.claude/skills && git log --oneline -1`
-3. You should see your commit message: `"Update skill file: <filename>"`
-4. Verify push: `git log origin/master --oneline -1` (should match local)
+## Known problems fixed
 
-## Technical Details
+- **`[[ ]]` in the hook**: the old command used bash-only `[[ ]]`. Claude Code runs hooks under `sh` (dash), so the test failed and skill edits were not committed. The current command uses `case` or `[ ]` only.
+- **Silent failures**: the old command hid errors with `|| true`. The script now writes `FAILED` to the log.
+- **Empty commits**: the old command failed with `nothing to commit` when a file had no changes. The script exits early when nothing is staged.
+- **Bash edits not captured**: the old matcher covered only Edit and Write. The Stop hook closes this gap.
+- **Repo moved**: the skills repo moved to `github.com/minhnguyenyf/skills`. The old `claude-skill-sync` URL still redirects, but update `origin` on each device: `git -C ~/.claude/skills remote set-url origin git@github.com:minhnguyenyf/skills.git`.
 
-- **Trigger**: `PostToolUse` event after `Edit` or `Write` tools complete
-- **Command type**: bash via `jq` to extract file path from hook input JSON
-- **Path filter**: Only triggers for files with `/.claude/skills/` in their path
-- **Safety**: Errors are silenced (`2>/dev/null || true`) to avoid blocking turns
-- **Message format**: `"Update skill file: <filename>"` for clarity in commit history
+## Not configured
 
-## Tested
+- **SessionStart pull**: skills are not pulled from GitHub at session start. Pull by hand with `git -C ~/.claude/skills pull --ff-only origin master` before working on another device.
 
-✅ Path matching works  
-✅ Git add succeeds  
-✅ Commit creation works  
-✅ Push to origin/master works  
+## Rules
 
-## Notes
-
-- The hook runs silently (won't show output unless it errors)
-- Works on any device with git, bash, and jq installed
-- Requires `~/.claude/skills/` to be a git repository (initialized automatically by Claude Code)
-- The `|| true` at the end ensures the hook never blocks a turn if push fails
-
-## 🤖 For Claude: Auto-Read & Learn Rule
-
-**IMPORTANT: Whenever the SessionStart hook pulls fresh skills from GitHub, you MUST:**
-1. Read the updated skill files to learn about changes
-2. Check git log for recent commits: `cd ~/.claude/skills && git log --oneline -5`
-3. Review any modifications in the skill documentation
-4. Understand the latest patterns, rules, and techniques before using the skills
-
-**Why:** Skills evolve with new learnings and fixes. Stale knowledge = bugs. Always read fresh skills.
-
----
-
-## ⚠️ CRITICAL: Always Push-Pull (DO NOT FORGET)
-
-**This is a STRICT rule for maintaining skill sync across devices:**
-
-1. **PostToolUse Hook (Auto-Push)** — Every skill edit triggers auto-commit & push to GitHub
-   - If push fails, manually verify: `cd ~/.claude/skills && git push origin master`
-   - Never let failed pushes go unnoticed
-
-2. **SessionStart Hook (Auto-Pull)** — Every new session pulls latest skills from GitHub
-   - Ensures you always have the latest skills on every device
-   - If skills are out of sync, the entire system breaks
-
-3. **Golden Rule** — Before switching to another device, verify the push succeeded on GitHub
-   - Check: `git log origin/master --oneline -1` (should match your local HEAD)
-   - If out of sync, manually pull: `git pull origin master`
-
-## See Also
-
-- Claude Code settings reference: `~/.claude/settings.json`
-- Git hooks documentation in PostToolUse section
+- Project repos under `/home/coder/workspace/peaks` are never auto-committed. Only `~/.claude/skills` is.
+- If a push fails, run `cd ~/.claude/skills && git push origin master` by hand and check the error.
+- Before switching devices, confirm the push succeeded: `git log origin/master --oneline -1` should match the local HEAD.
