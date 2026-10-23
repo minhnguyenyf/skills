@@ -28,6 +28,11 @@ This skill documents critical constraints and policies for working on this proje
 - ❌ **DO NOT modify**: `ra/arm/mbedtls-v4/tf-psa-crypto/` — read-only submodule
 - ✅ **DO fix at project level**: e2 studio include paths, build configurations
 
+### Read Restrictions
+- ❌ **DO NOT read**: `ra/fsp/src/r_sce/`, `ra/fsp/src/r_rsip_protected/`, `ra/fsp/src/r_sce_protected/` (including their `crypto_procedures` submodule contents). Set by Minh Nguyen; do not use `grep`, `find`, `git show`, or `Read` on these paths, even for a review.
+- ✅ Changes to these paths in a diff (`git diff develop...HEAD`) may be reported by file name and pointer SHA only. Say that the contents were not reviewed.
+- If a review needs something from these paths, say so in the report and ask the user to check it.
+
 ## When to Use This Skill
 
 1. **Before any git commit/push** — verify you're not auto-committing to a work project
