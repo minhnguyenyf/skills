@@ -1468,3 +1468,36 @@ build of the user flow.
 - The section numbering has two entries numbered 21 (the `ra2a1_tbb` RAM overflow and "Board-Specific RAM Overflow Fixes"). Sections 25 and 26 were added after them. Don't renumber without updating cross-references (`§22` etc.).
 - §9 says the ECC bus fault is "FIXED", but the actual change was to skip the test on E31A boards (`psa_crypto_tests_tg5.c`). The `mlist` stale-pointer root cause is not identified as fixed. Treat as open.
 - `mbedtlsv4-tf-psa-crypto-integrated/SKILL.md` has Windows paths (`C:\Workspace\peaks`) and Windows-specific environment notes from an older session. Verify before using.
+
+## 28. Building the TF-PSA-Crypto module in e2: missing sources and include folders (2026-10-23)
+
+The module description (`ra/arm/!dsn/tf_psa_crypto_module.xml`) lists sources and include folders. e2 copies only what is listed, so any header that the code includes but the list omits fails with `fatal error: X.h: No such file or directory`. The fix is to add the file or folder to the module, not to add `-I` flags by hand.
+
+| Error (e2 Problems view) | Cause | Fix in module |
+|---|---|---|
+| `build_info.h:116 psa/crypto_config.h` | `ra_cfg/arm/mbedtls-v4/` is not on the include path; only `.../psa/` and `ra_cfg/arm/` are | Add include folder `ra_cfg/arm/mbedtls-v4/` |
+| `psa_crypto_driver_wrappers.h:16 psa_crypto_driver_wrappers_no_static.h` | The generated `_no_static` pair is not listed, and `psa_crypto_xof.h`/`.c` are not listed either | Add `core/psa_crypto_driver_wrappers_no_static.{h,c}` and `drivers/builtin/src/psa_crypto_xof.{h,c}` |
+| `debug.c:8`, `mps_*.c`, `net_sockets.c`, `timing.c` include `ssl_misc.h`; `pkcs7.c` includes `x509_internal.h` | TLS/X.509 library sources in the PSA-only list. The include is unconditional, so the file fails even when its feature macro is off | Remove them from the module (no PSA or `rm_tf_psa_crypto` code uses those APIs) |
+| `psa_crypto.c:61 pk_wrap.h` | `extras/` is not on the include path, and `psa_crypto.c` includes `"pk_wrap.h"` without a folder prefix | Add include folder `tf-psa-crypto/extras` |
+| `library/version.c:8 ssl_misc.h` | TLS version API; nothing in PSA calls `mbedtls_version_get_*` | Remove `library/version.c` |
+
+How to check a missing header before adding it:
+1. Find the file with `find ra/arm/mbedtls-v4 -name <header>`.
+2. Check whether the module already lists it: `grep -c <path> ra/arm/!dsn/tf_psa_crypto_module.xml`.
+3. Check the users: `grep -rln <API prefix> ra/fsp/src/rm_tf_psa_crypto ra/arm/mbedtls-v4/tf-psa-crypto/core`. If nothing outside the removed file uses it, removing the file is the smaller change.
+
+Rules that held:
+- Keep the module file CRLF. Check with `grep -c $'\r$'` against `wc -l`.
+- Refresh the module in e2 (re-add or regenerate) before judging a fix. e2 keeps its own copy of the files.
+
+## 29. Saved e2 values override module defaults (2026-10-23)
+
+- Module defaults only apply to new projects. e2's `configuration.xml` stores a value for every property (for example `config.driver.tf_psa_crypto_ecp_secp_r1_256.disabled` at line 464). A saved value overrides a changed default.
+- Symptom: a `#error` about a missing prerequisite, such as `PSA_WANT_ALG_CCM defined, but not all prerequisites` (`core/check_crypto_config.h:22`). The fix is in e2 (enable the dependency, for example `PSA_WANT_KEY_TYPE_AES`), or in the module if the default should change.
+- Check the generated `ra_cfg/arm/mbedtls-v4/psa/crypto_config.h`. A disabled option is wrapped in `#if 0`, so search for `#if 0` before `#define PSA_WANT_...` lines.
+- A `PSA_WANT_ALG_ECDSA` (on by default) with no curve enabled leads to `#error "Missing definition of MBEDTLS_ECP_MAX_BITS"` (`drivers/builtin/include/mbedtls/private/ecp.h:330`). Enable `PSA_WANT_ECC_SECP_R1_256`.
+
+## 30. Key storage format selectors (2026-10-23)
+
+- In the module, `config.driver.tf_psa_crypto.{aes,ecc,rsa}_format` use `<select enum="enum.mcu.psa_crypto.*_format" />`. The enums are defined per device in the BSP module (`ra/fsp/src/bsp/mcu/<mcu>/.module_descriptions/`). Each enum has `plaintext` (`config.driver.psa_crypto.<alg>_format.plaintext`) and `vendor_plaintext_wrapped`.
+- The module's `default=""` was changed to the `plaintext` option ID. The BSP enum default stays `vendor_plaintext_wrapped`.
