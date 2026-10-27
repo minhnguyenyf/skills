@@ -13,7 +13,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 ├── 🔐 psa/           PSA Crypto / mbedTLS v3 → v4 / TF-PSA-Crypto
 ├── 🥾 mcuboot/       MCUboot port and protected mode
 ├── 🧭 common/        Project rules, commit policy, tooling
-├── 🔍 code-review/   Branch review write-ups
+├── 🔍 code-review/   Code and branch review reports
 ├── 🔄 synced/        Anthropic-managed skills (do not edit)
 └── 📄 README.md      This file
 ```
@@ -38,6 +38,12 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `mcuboot-port-ospi` | MCUboot port, external-flash secondary slots (OSPI and QSPI), flash map selection, hardware-run reports |
 | `mcuboot-rsip-protected` | MCUboot RSIP protected mode: device gating, instance naming, key sections, include paths, flash-key scripts |
 
+## 🔧 Top level: build tooling
+
+| Skill | What it covers |
+|---|---|
+| `ocrypto` | Oberon Ocrypto build order (build `ocrypto` for ra2e1_ek before rm_ocrypto_port for ra2l1_ek), `cannot find -locrypto` |
+
 ## 🧭 `common/`: rules and tooling
 
 | Skill | What it covers |
@@ -49,7 +55,13 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 ## 🔍 `code-review/`
 
-Notes from past code reviews, kept so future review work can reuse the findings, the checks that worked, and the open items.
+Reports from past code and branch reviews. Each one records the verdict, the findings with severity, what was not verified, and a merge checklist. Reuse them for later reviews.
+
+| File | What it covers |
+|---|---|
+| `branch_review.md` | FSPRA-5831 `mcb_protected_ra8_hh` vs develop: RSIP protected mode, merge status, linker and flash-key items |
+| `FSPRA-6005_review.md` | FSPRA-6005 RSA/ECC update vs develop: unifying RSIP-E50D with the E51A code paths, release note, submodule pointer |
+| `flash_script_reply_to_PM.md` | Reply to the PM on consolidating the flash-key scripts |
 
 ---
 
