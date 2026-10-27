@@ -13,6 +13,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 ├── 🔐 psa/           PSA Crypto / mbedTLS v3 → v4 / TF-PSA-Crypto
 ├── 🥾 mcuboot/       MCUboot port and protected mode
 ├── 🧭 common/        Project rules, commit policy, tooling
+├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build (top level)
 ├── 🔍 code-review/   Code and branch review reports
 ├── 🔄 synced/        Anthropic-managed skills (do not edit)
 └── 📄 README.md      This file
@@ -38,11 +39,13 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `mcuboot-port-ospi` | MCUboot port, external-flash secondary slots (OSPI and QSPI), flash map selection, hardware-run reports |
 | `mcuboot-rsip-protected` | MCUboot RSIP protected mode: device gating, instance naming, key sections, include paths, flash-key scripts |
 
-## 🔧 Top level: build tooling
+## 🔧 `ocrypto/`: Oberon Ocrypto and rm_ocrypto_port (top level)
+
+Build knowledge for the `rm_ocrypto_port` module and the `ocrypto` library it links. The skill sits at the top level so it loads without a group folder.
 
 | Skill | What it covers |
 |---|---|
-| `ocrypto` | Oberon Ocrypto build order (build `ocrypto` for ra2e1_ek before rm_ocrypto_port for ra2l1_ek), `cannot find -locrypto` |
+| `ocrypto` | `rm_ocrypto_port` build order (build `ocrypto` for ra2e1_ek first, then `rm_ocrypto_port` for ra2l1_ek), why `libocrypto.a` goes missing (board filter in `SConstruct`), the `cannot find -locrypto` error, rebuild triggers per compiler, and the ocrypto_licensed link |
 
 ## 🧭 `common/`: rules and tooling
 
