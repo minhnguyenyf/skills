@@ -59,9 +59,9 @@ Reports from past code and branch reviews. Each one records the verdict, the fin
 
 | File | What it covers |
 |---|---|
-| `branch_review.md` | FSPRA-5831 `mcb_protected_ra8_hh` vs develop: RSIP protected mode, merge status, linker and flash-key items |
+| `FSPRA-5831_review.md` | FSPRA-5831 `mcb_protected_ra8_hh` vs develop: RSIP protected mode, merge status, linker and flash-key items |
 | `FSPRA-6005_review.md` | FSPRA-6005 RSA/ECC update vs develop: unifying RSIP-E50D with the E51A code paths, release note, submodule pointer |
-| `flash_script_reply_to_PM.md` | Reply to the PM on consolidating the flash-key scripts |
+| `FSPRA-5831_flash_script_reply_to_PM.md` | Reply to the PM on consolidating the flash-key scripts |
 
 ---
 
