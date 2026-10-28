@@ -25,46 +25,44 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 | Skill | What it covers |
 |---|---|
-| `mbedtlsv4-tf-psa-crypto-integrated` | Quick start for the mbedTLS 4.1.0 / TF-PSA-Crypto integration |
-| `mbedtls-v4-migration-notes` | v3 ↔ v4 API diffs, littlefs and PSA storage, ECC bus-fault investigation, changelog digest |
-| `cch-psa-driver-scaffold` | 4-layer CCH / PSA driver pattern for `rm_tf_psa_crypto` (+ SVG diagrams) |
-| `test-case-porting-guide` | Checklist for porting test cases between v3 and v4 |
-| `tf-psa-crypto-v4-analysis` | Heap requirement analysis (not yet verified) |
-| `mbedtls-to-psa-test-conversion` | How rm_tf_psa_crypto test cases were moved from mbedtls to PSA: patterns, removals, open items, pitfalls |
+| `mbedtlsv4-tf-psa-crypto-integrated` | mbedTLS 4.x and TF-PSA-Crypto integration |
+| `mbedtls-v4-migration-notes` | mbedTLS v3 to v4 migration and PSA storage |
+| `cch-psa-driver-scaffold` | PSA driver pattern for `rm_tf_psa_crypto` |
+| `test-case-porting-guide` | Porting test cases between v3 and v4 |
+| `tf-psa-crypto-v4-analysis` | TF-PSA-Crypto v4 heap analysis (not yet verified) |
+| `mbedtls-to-psa-test-conversion` | Converting `rm_tf_psa_crypto` tests from mbedTLS to PSA |
 
 ## 🥾 `mcuboot/`: MCUboot port
 
 | Skill | What it covers |
 |---|---|
-| `mcuboot-port-ospi` | MCUboot port, external-flash secondary slots (OSPI and QSPI), flash map selection, hardware-run reports |
-| `mcuboot-rsip-protected` | MCUboot RSIP protected mode: device gating, instance naming, key sections, include paths, flash-key scripts |
+| `mcuboot-port-ospi` | MCUboot port with external flash slots |
+| `mcuboot-rsip-protected` | MCUboot RSIP protected mode |
 
-## 🔧 `ocrypto/`: Oberon Ocrypto and rm_ocrypto_port (top level)
-
-Build knowledge for the `rm_ocrypto_port` module and the `ocrypto` library it links. The skill sits at the top level so it loads without a group folder.
+## 🔧 `ocrypto/`: Oberon Ocrypto (top level)
 
 | Skill | What it covers |
 |---|---|
-| `ocrypto` | `rm_ocrypto_port` build order (build `ocrypto` for ra2e1_ek first, then `rm_ocrypto_port` for ra2l1_ek), why `libocrypto.a` goes missing (board filter in `SConstruct`), the `cannot find -locrypto` error, rebuild triggers per compiler, and the ocrypto_licensed link |
+| `ocrypto` | Ocrypto library and `rm_ocrypto_port` build |
 
 ## 🧭 `common/`: rules and tooling
 
 | Skill | What it covers |
 |---|---|
-| `important-rules` | Commit / push policy by repo type, read-only submodules (`ra/arm/mbedtls-v4/`) |
-| `auto-commit-skills` | `PostToolUse` hook that commits and pushes skill edits, plus setup script |
-| `budget-optimization` | Keeping token spend down: model choice, context size, subagents |
-| `knowledge-capture` | Rule: save MCUboot and mbedTLS findings to the matching skill folder for future sessions |
+| `important-rules` | Commit policy and read-only submodules |
+| `auto-commit-skills` | Auto-commit hook for skill edits |
+| `budget-optimization` | Token spend and model choice |
+| `knowledge-capture` | Saving MCUboot and mbedTLS findings |
 
 ## 🔍 `code-review/`
 
-Reports from past code and branch reviews. Each one records the verdict, the findings with severity, what was not verified, and a merge checklist. Reuse them for later reviews.
+Past code and branch reviews, with verdicts, findings, and merge checklists.
 
 | File | What it covers |
 |---|---|
-| `FSPRA-5831_review.md` | FSPRA-5831 `mcb_protected_ra8_hh` vs develop: RSIP protected mode, merge status, linker and flash-key items |
-| `FSPRA-6005_review.md` | FSPRA-6005 RSA/ECC update vs develop: unifying RSIP-E50D with the E51A code paths, release note, submodule pointer |
-| `FSPRA-5831_flash_script_reply_to_PM.md` | Reply to the PM on consolidating the flash-key scripts |
+| `FSPRA-5831_review.md` | FSPRA-5831 RSIP protected-mode branch review |
+| `FSPRA-6005_review.md` | FSPRA-6005 RSIP-E50D unification review |
+| `FSPRA-5831_flash_script_reply_to_PM.md` | PM reply on flash-key scripts |
 
 ---
 
