@@ -13,7 +13,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 ├── 🔐 psa/           PSA Crypto / mbedTLS v3 → v4 / TF-PSA-Crypto
 ├── 🥾 mcuboot/       MCUboot port and protected mode
 ├── 🧭 common/        Project rules, commit policy, tooling
-├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build (top level)
+├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
 ├── 🔍 code-review/   Code and branch review reports
 ├── 🔄 synced/        Anthropic-managed skills (do not edit)
 └── 📄 README.md      This file
@@ -39,7 +39,7 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 | `mcuboot-port-ospi` | MCUboot port with external flash slots |
 | `mcuboot-rsip-protected` | MCUboot RSIP protected mode |
 
-## 🔧 `ocrypto/`: Oberon Ocrypto (top level)
+## 🔧 `ocrypto/`: Oberon Ocrypto
 
 | Skill | What it covers |
 |---|---|
