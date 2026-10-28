@@ -33,9 +33,14 @@ else
   label="sweep"
 fi
 
-if git commit -q -m "$msg" && git push -q origin master >> "$LOG" 2>&1; then
+# Pull and rebase on top of the remote before pushing, so a teammate's newer commit does not reject the push.
+# If the rebase hits a conflict, abort it: the commit stays local and the log shows FAILED for manual resolution.
+if git commit -q -m "$msg" \
+  && git pull -q --rebase origin master >> "$LOG" 2>&1 \
+  && git push -q origin master >> "$LOG" 2>&1; then
   echo "$(date) OK $label" >> "$LOG"
 else
-  echo "$(date) FAILED $label" >> "$LOG"
+  git rebase --abort >/dev/null 2>&1
+  echo "$(date) FAILED $label (pull/rebase/push; resolve by hand)" >> "$LOG"
 fi
 exit 0
