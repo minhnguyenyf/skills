@@ -1,6 +1,6 @@
 # 🧰 Claude Skills
 
-Personal skill library for the **peaks** repository (Renesas RA / FSP, mbedTLS and TF-PSA-Crypto, MCUboot).
+Skill library for the **peaks** repository (Renesas RA / FSP, mbedTLS and TF-PSA-Crypto, MCUboot), shared by the RA FSP Security team. Contributions are welcome.
 
 Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagrams). Claude loads a skill when its description matches the task.
 
@@ -98,8 +98,8 @@ Past code and branch reviews, with verdicts, findings, and merge checklists.
 ## ⚡ How it works
 
 1. **Load:** a skill's description decides when it's used. Keep descriptions specific, since they drive matching.
-2. **Edit:** changes made with the `Edit` or `Write` tools under `~/.claude/skills/` are committed and pushed to `origin/master` by the hook in `~/.claude/settings.json`.
-3. **Move or delete:** `mv` and `rm` in Bash bypass the hook, so commit those changes by hand.
+2. **Edit:** changes made with the `Edit` or `Write` tools under `~/.claude/skills/` are committed and pushed to `origin/master` by the `PostToolUse` hook in `~/.claude/settings.json`.
+3. **Other changes:** changes made in Bash, such as `mv` or `rm`, are committed and pushed by the `Stop` hook at the end of each turn.
 4. **Sync:** a `SessionStart` pull is described in the docs but is **not** configured in `settings.json`, so skills do not sync from GitHub at session start yet.
 
 ---
