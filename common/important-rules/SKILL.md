@@ -33,6 +33,10 @@ This skill documents critical constraints and policies for working on this proje
 - ✅ Changes to these paths in a diff (`git diff develop...HEAD`) may be reported by file name and pointer SHA only. Say that the contents were not reviewed.
 - If a review needs something from these paths, say so in the report and ask the user to check it.
 
+### Personal Information
+- ❌ **Never write** a personal name or a work email in any skill file. Use "the user" or "the author" instead. This repo is shared publicly.
+- ✅ Ticket numbers (FSPRA-xxxx) and project names are fine to keep.
+
 ## When to Use This Skill
 
 1. **Before any git commit/push** — verify you're not auto-committing to a work project
