@@ -27,7 +27,9 @@ Two hooks run `~/.claude/hooks/commit-skills.sh`:
 
 The Stop hook catches changes the PostToolUse hook misses: Bash commands (`cat >>`, `mv`, `rm`) and edits made outside Edit or Write. Both hooks do nothing when nothing is staged, so repeated runs are safe.
 
-Each run pushes to `origin/master`. Successes and failures are appended to `~/.claude/skill-autocommit.log`.
+Each run commits, then pulls and rebases on `origin/master`, then pushes. This avoids rejected pushes when a teammate has pushed first. If the rebase hits a conflict, the script aborts it. The commit stays local, and the log shows `FAILED` so you can resolve it by hand.
+
+Successes and failures are appended to `~/.claude/skill-autocommit.log`.
 
 ## Files
 
