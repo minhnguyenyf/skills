@@ -15,7 +15,6 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 ├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
 ├── 🔍 code-review/   Code and branch review reports
-├── 🔄 synced/        Anthropic-managed skills (do not edit)
 └── 📄 README.md      This file
 ```
 
