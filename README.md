@@ -10,11 +10,15 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 ### 1. Clone the skills repo into `~/.claude/skills`
 
+Clone the repo into `~/.claude/skills`, the path Claude reads skills from:
+
 ```bash
 git clone <skills-repo-url> ~/.claude/skills
 ```
 
-Replace `<skills-repo-url>` with the repo's address from your team. You need `git`, `jq`, and access to the repo (SSH key or credentials).
+Replace `<skills-repo-url>` with the repo address from your team.
+
+If `~/.claude/skills` already exists as an empty folder, remove it first with `rmdir ~/.claude/skills`, then run the clone.
 
 ### 2. Ask Claude to set up the rules and auto-commit
 
@@ -26,22 +30,6 @@ Then run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/
 Confirm the hook is installed in ~/.claude/settings.json and that the test in setup.sh passes.
 Apply the commit, submodule, and read-restriction rules from important-rules to this project.
 Summarize what you set up and anything you could not verify.
-```
-
-Claude reads the rules and sets up the hooks. Check the result:
-
-```bash
-jq '.hooks | keys' ~/.claude/settings.json      # should list PostToolUse and Stop
-tail ~/.claude/skill-autocommit.log              # OK lines after skill edits
-```
-
-### 3. Check that it works
-
-Edit any file under `~/.claude/skills/`, end the turn, then run:
-
-```bash
-cd ~/.claude/skills && git log --oneline -1
-git log origin/master --oneline -1               # should match
 ```
 
 See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for details and troubleshooting.
