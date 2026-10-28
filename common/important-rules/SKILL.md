@@ -20,7 +20,7 @@ This skill documents critical constraints and policies for working on this proje
 
 ### Preview Before Editing
 - ✅ **Always show the change first** (file, old → new, or a diff) and wait for the user's go-ahead before editing any file in a project repo such as `/home/coder/workspace/peaks/`.
-- Applies to every edit, including one-line fixes to XML, config, or headers. Standing preference set by Minh Nguyen; do not skip it because the change looks small.
+- Applies to every edit, including one-line fixes to XML, config, or headers. Standing preference set by the user; do not skip it because the change looks small.
 - Once approved, make the edit and report what changed.
 
 ### Submodule Constraints
@@ -29,7 +29,7 @@ This skill documents critical constraints and policies for working on this proje
 - ✅ **DO fix at project level**: e2 studio include paths, build configurations
 
 ### Read Restrictions
-- ❌ **DO NOT read**: `ra/fsp/src/r_sce/`, `ra/fsp/src/r_rsip_protected/`, `ra/fsp/src/r_sce_protected/` (including their `crypto_procedures` submodule contents). Set by Minh Nguyen; do not use `grep`, `find`, `git show`, or `Read` on these paths, even for a review.
+- ❌ **DO NOT read**: `ra/fsp/src/r_sce/`, `ra/fsp/src/r_rsip_protected/`, `ra/fsp/src/r_sce_protected/` (including their `crypto_procedures` submodule contents). Set by the user; do not use `grep`, `find`, `git show`, or `Read` on these paths, even for a review.
 - ✅ Changes to these paths in a diff (`git diff develop...HEAD`) may be reported by file name and pointer SHA only. Say that the contents were not reviewed.
 - If a review needs something from these paths, say so in the report and ask the user to check it.
 

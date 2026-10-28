@@ -1,7 +1,7 @@
 # Submodule Read-Only Constraints
 
 **Last Updated**: 2026-10-01  
-**User**: Minh Nguyen (minh.nguyen.yf@renesas.com)
+**User**: the user
 
 ---
 

@@ -1,7 +1,7 @@
 # 🚨 CRITICAL: Claude Commit Policy
 
 **Date Set**: 2026-10-01  
-**User**: Minh Nguyen (minh.nguyen.yf@renesas.com)
+**User**: the user
 
 ---
 
@@ -24,10 +24,10 @@
 2. **Show diff** to user
 3. **NEVER commit** ❌
 4. **NEVER push** ❌
-5. **User commits MANUALLY** (Minh will do this themselves)
-6. **User pushes MANUALLY** (Minh will do this themselves)
+5. **User commits MANUALLY** (the user will do this themselves)
+6. **User pushes MANUALLY** (the user will do this themselves)
 
-**CRITICAL**: Only Minh manually commits and pushes to work project repos. Claude NEVER touches git commit/push for project work.
+**CRITICAL**: Only the user manually commits and pushes to work project repos. Claude NEVER touches git commit/push for project work.
 
 ### For Skills Repos (`~/.claude/skills/`):
 1. **Stage changes**
@@ -114,7 +114,7 @@ These are external dependencies managed as git submodules. Any fixes or configur
 ## Last Updated
 
 - **2026-10-01**: Initial rule set after constraint fix incident
-- User: Minh Nguyen
+- User: the user
 - Context: Fixed XML constraint but learned not to auto-commit to project repos
 - **2026-10-01**: Added submodule read-only constraint
 - Context: Cannot modify mbedtls-v4 and tf-psa-crypto submodules

@@ -1,7 +1,7 @@
 # Review: FSPRA-5831_mcb_protected_ra8_hh vs develop (updated)
 
 **Status:** Draft for review. Not committed to the project repo.
-**Written for:** Minh Nguyen (branch author), for review before the branch is merged.
+**Written for:** the user (branch author), for review before the branch is merged.
 **Base:** `develop` (merge-base `2d3e264b138`) · **Head:** `5e7e8866cad` ("FSPRA-5831 Fix backward compatibility issue", 2026-10-16)
 **Size:** 85 commits · 552 files · +2,534 / −625. This replaces the 2026-10-13 review, which covered head `9bb44da1dd2` (56 commits, 75 files).
 

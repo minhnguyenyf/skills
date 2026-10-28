@@ -76,7 +76,7 @@ Past code and branch reviews, with verdicts, findings, and merge checklists.
 
 ## 🛡️ Rules to remember
 
-- Project repos (`/home/coder/workspace/peaks/`) are **never** auto-committed. Stage, show the diff, and let Minh commit.
+- Project repos (`/home/coder/workspace/peaks/`) are **never** auto-committed. Stage, show the diff, and let the user commit.
 - `ra/arm/mbedtls-v4/` and its `tf-psa-crypto/` are read-only submodules. Fix problems in project config instead.
 - Never hand-edit files listed in `data/collected-files/ddsc-generated.yml`. Change the generator template.
 - Read `common/important-rules` before any git operation.

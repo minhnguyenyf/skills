@@ -1,7 +1,7 @@
 # Review: FSPRA-6005_RSA_ECC_updates_aligned_with_the_new_security_policy vs develop
 
 **Status:** Draft for review. Not committed to the project repo.
-**Written for:** Minh Nguyen (branch author), before the branch is merged.
+**Written for:** the user (branch author), before the branch is merged.
 **Base:** `develop` at `a16a55bdfc4` (merge-base, branch is 0 behind) · **Head:** `39de99ecb67` · **Size:** 17 commits · 14 files · +105 / −241.
 **Scope limits:** `ra/fsp/src/r_sce/`, `ra/fsp/src/r_rsip_protected/` and `ra/fsp/src/r_sce_protected/` were not read (user restriction, see `common/important-rules`). Anything that depends on those paths is marked **Not verified**.
 

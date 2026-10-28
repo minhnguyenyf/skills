@@ -1,6 +1,6 @@
 # ra6_qspi MCUboot test report (EK-RA6M5, QSPI secondary slot)
 
-Date: 2026-10-07. Branch: FSPRA-6767. Author of the work: Minh Nguyen with Claude Code.
+Date: 2026-10-07. Branch: FSPRA-6767. Author of the work: the user with Claude Code.
 Status: **ran on hardware once (2026-10-07): 2 TG2 tests failed; root cause found, see section 0. Sections 4-6 describe the INTENDED design and are wrong about flash_map until the fix in section 0 is applied.**
 
 ## 0. Hardware result and root cause (2026-10-07) - read first
