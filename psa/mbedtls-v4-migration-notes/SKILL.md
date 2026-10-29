@@ -1522,3 +1522,26 @@ Compare the release tags `tf-psa-crypto-1.1.0` and `tf-psa-crypto-1.1.1` inside 
 - The HW Overview table in `rm_psa_crypto/!dsn/rm_psa_crypto_usage_notes.md` should be checked against the BSP flags. The E50D row was missing RA8M2, RA8D2 and RA8T2 and was updated. Other rows that differ from the BSP: SCE9 is missing RA4E1 and RA6E1; AES Engine 2 is missing RA2L3; TRNG is missing RA0L1.
 - The `FSPRA-6005` branch makes E50D follow the E51A code paths in the PSA alt-process, netx, and RSIP key-injection code. The E50D driver signatures are in restricted paths and have not been verified (see `code-review/FSPRA-6005_review.md`, item 2.1).
 - Per-device checks: `BSP_FEATURE_*` flags come from each MCU's `bsp_feature.h`. Use `grep` on those headers, not the `.module_descriptions` XML.
+
+## 33. Crypto peripheral to device map and stack availability (2026-10-29)
+
+Use this table for `rm_tf_psa_crypto` and `rm_psa_crypto` usage notes. Source: the `BSP_FEATURE_*` flags in each `ra/fsp/src/bsp/mcu/<mcu>/bsp_feature.h`, and the `provides interface="interface.driver.sce"` driver modules under `ra/fsp/src/r_sce/.module_descriptions/`.
+
+| Crypto peripheral | Devices |
+|---|---|
+| RSIP-E51A | RA8M1, RA8D1, RA8T1, RA8E1, RA8E2 |
+| RSIP-E50D | RA8P1, RA8M2, RA8D2, RA8T2 |
+| RSIP-E31A | RA4C1 |
+| RSIP-E11A | RA4L1 |
+| SCE9 | RA6M4, RA4M3, RA4M2, RA6M5, RA4E1, RA6E1 |
+| SCE7 | RA6M3, RA6M2, RA6M1, RA6T1 |
+| SCE5 | RA4W1, RA4M1 |
+| SCE5B | RA6T2 |
+| AES Engine | RA2A1, RA2E1, RA2E2, RA2L1 |
+| AES Engine 2 | RA2A2 |
+| TRNG | RA0E1, RA0E2, RA0L1, RA2L2, RA4E1, RA4E2, RA4T1, RA6E1, RA6E2, RA6T3, RA8E1, RA8E2 |
+
+- **Unreleased:** RA2L3 is not in any released release note (only upcoming v6.7.0-beta.0 and internal packs). Do not list it in public usage notes.
+- **Stack availability:** the MbedTLS v3 module (`module.arm.mbedtls`, requires `interface.driver.psa_crypto`) and the v4 module (`module.arm.mbedtls_v4`, requires `interface.driver.tf_psa_crypto`) have no device gating of their own. Each port (`rm_psa_crypto`, `rm_tf_psa_crypto`) requires `interface.driver.sce`. So a device can add either stack only if an SCE or RSIP driver module exists for it.
+- **Devices with an SCE or RSIP driver:** all devices in the table except the AES Engine, AES Engine 2 and TRNG-only parts can add both stacks.
+- **Not verified:** the AES Engine devices (RA2A1, RA2A2, RA2E1, RA2E2, RA2L1). They have no SCE or RSIP driver, yet `rm_psa_crypto` is listed for `ra2a1_ek` and `ra2a2_ek` in `projects/pipeline_builds.yml`. Check the build before relying on either answer.
