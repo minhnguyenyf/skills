@@ -37,6 +37,10 @@ This skill documents critical constraints and policies for working on this proje
 - ❌ **Never write** a personal name or a work email in any skill file. Use "the user" or "the author" instead. This repo is shared publicly.
 - ✅ Ticket numbers (FSPRA-xxxx) and project names are fine to keep.
 
+### Compact Skill Files
+- ✅ Keep every skill file (`.md`) compact: status and knowledge only. Remove error logs, debugging narratives, resolved issues, and superseded notes. Full details stay in git history.
+- Rule details and checklist: [knowledge-capture/SKILL.md](../knowledge-capture/SKILL.md) ("Keep skill files compact").
+
 ## When to Use This Skill
 
 1. **Before any git commit/push** — verify you're not auto-committing to a work project
