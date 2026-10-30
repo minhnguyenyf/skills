@@ -28,6 +28,19 @@ Check the folder for an existing note on the topic before you write a new one. U
 
 Keep notes short. Use exact file paths and symbol names, so a future session can check the claim quickly.
 
+## Keep skill files compact
+
+Skill files are read at the start of every session, so every extra line costs tokens. Record only:
+- **Status:** what is done, what is open, and what was verified.
+- **Knowledge:** facts, file paths, symbol names, device and config mappings, and rules to follow.
+
+Do not keep:
+- Error logs, debugging steps, or narratives of how a bug was found.
+- Issues that are resolved and no longer affect the code.
+- Duplicate or superseded notes. Keep only the current fact.
+
+When a note becomes long, compact it in place. Do not add a new file for the same topic.
+
 ## Before you investigate again
 
 Read the matching skill folder first. If the answer is there, use it, and check the cited file only if the note looks stale.
