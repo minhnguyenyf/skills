@@ -2,38 +2,19 @@
 
 **Written for:** the project manager, as a reply to the review comment on the RFP key-install scripts.
 **Branch:** `FSPRA-5831_mcb_protected_ra8_hh`, base `5e7e8866cad`.
-**Status:** Changes are in the working tree, not yet committed.
+**Status:** Changes are in the working tree, not committed. The author commits after review.
 
----
+## Proposal
+Replace the five key-install scripts in `rm_mcuboot_port/!test/` with `flash_with_key.sh <srec> <key_address_hex> <key_file>`.
 
-## 1. Your suggestion
+Why: the five copies end with exit 0 even when RFP fails 20 times (a CI job reads that as success), and their comments name the wrong key in places.
 
-Replace the five key-install scripts in `rm_mcuboot_port/!test/` with one script:
-
-```
-flash_with_key.sh <srec> <key_address_hex> <key_file>
-```
-
-The key file becomes an argument instead of being hard-coded in each script.
-
-## 2. Why it was suggested
-
-The five scripts were copy-pasted. Each one is about 20 lines and differs only in its key file name. Two problems follow from that:
-
-- **Silent failure.** If RFP fails 20 times, each script ends without an error code, so it exits with 0. A test run or CI job reads that as success, even though the key was never installed. This is the most important problem.
-- **Copy-paste errors.** Comments name the wrong key (for example, the RSA script says `ECC_pub_5.rkey`). Each script also trusts its arguments without checking them.
-
-One script with an explicit key file fixes both problems in one place.
-
-## 3. What we changed
-
+## What changed
 | Item | Change |
 |---|---|
-| `flash_with_key.sh` (new) | Checks the argument count, the SREC file, the key address (hex, no `0x`), and the key file. Retries RFP up to 20 times. Exits 1 if all attempts fail. |
-| Five old scripts | Now thin wrappers. Each keeps its old two-argument call and forwards to `flash_with_key.sh` with its own key. Existing callers keep working. |
-| `projects/rm_mcuboot_port.xml` | Four active test entries call `flash_with_key.sh` and pass the key file name through the existing `test_info_init` mechanism. The field is named `pub_key_file`, as in your example, and `flash_script_args` lists `['g_pub_key', 'pub_key_file']`. The harness code does not change. |
-
-Key mapping:
+| `flash_with_key.sh` (new) | Checks argument count, SREC file, key address (hex, no `0x`), key file. Retries RFP up to 20 times. Exits 1 if all attempts fail. |
+| Five old scripts | Thin wrappers. Keep the old two-argument call and forward to `flash_with_key.sh` with their own key. |
+| `projects/rm_mcuboot_port.xml` | Four active entries pass the key file through `test_info_init` as `pub_key_file`. `flash_script_args` = `['g_pub_key', 'pub_key_file']`. Harness code unchanged. |
 
 | Test project | Key file |
 |---|---|
@@ -42,41 +23,21 @@ Key mapping:
 | `ra8m1_ek_rsip_e51a_protected_rsa` | `RSA_pub_rsip.rkey` |
 | `ra8m1_ek_rsip_e51a_protected_fast_boot` | `ECC_pub_rsip.rkey` |
 
-## 4. Changes to your draft
+## Changes to the draft
+1. Added `#!/bin/bash` (the draft used bash syntax with no shebang).
+2. Kept the harness's two-argument call working by passing the key file through `test_info_init`.
+3. Added an SREC existence check.
+4. Added a hex check on the address (a `0x` prefix would be retried 20 times).
+5. The last attempt no longer prints `Retry`.
 
-The draft was a good base. We made these changes before adopting it:
+## Testing so far
+- Syntax check passes. Fake `rfp-cli` covered: wrong argument count, `0x` prefix, missing SREC, missing key, success, 20 failures (exit 1).
+- XML parses; the four active entries resolve correctly. Each wrapper's key file exists.
 
-1. **Missing shebang.** The draft has no `#!/bin/bash` line. The loop uses bash syntax, so under `sh` it would fail. Added.
-2. **Callers would break.** The test harness passes two arguments (the SREC and the key address). The draft requires three, so every test entry would fail. We pass the key file through the existing `test_info_init` field, so the harness doesn't change.
-3. **No SREC check.** Added a file-exists check.
-4. **No address check.** A `0x` prefix would become `0x0x…` and be retried 20 times. Added a hex check.
-5. **Retry message.** The last attempt no longer prints `Retry`.
+## Not done
+- Not run against the real RFP tool, the test harness, or hardware.
 
-## 5. Testing so far
-
-- Syntax check passes for every script.
-- The new script was run with a fake `rfp-cli` (a stub that logs its arguments) in a scratch folder, covering:
-  - wrong argument count
-  - `0x` prefix
-  - missing SREC
-  - missing key
-  - success
-  - 20 failed attempts (exit 1)
-- The XML parses. The four active entries resolve to the right arguments.
-- Each wrapper names a key file that exists.
-
-## 6. Not yet done
-
-- Not run against the real RFP tool.
-- Not run through the test harness on a board.
-- No hardware test.
-
-## 7. Questions for you
-
-1. Should we delete the five old wrapper scripts now, or after one harness run? I suggest after a harness run.
-2. `flash_with_key_rsa_3072.sh` is not used by any test entry on this branch. Keep it as a wrapper, or delete it?
-3. Is the 20-attempt limit and the one-second wait right for the libjlinkarm error?
-
-## 8. Summary for your reply
-
-We adopted the single script, with the fixes above. It stops reporting success when the key install fails, and the test entries pass the key file explicitly. The old scripts remain as wrappers until a harness run confirms the new path. The changes are in the working tree of `FSPRA-5831_mcb_protected_ra8_hh`, and the author will commit them after review.
+## Open questions
+1. Delete the five wrappers now, or after one harness run? Suggested: after a harness run.
+2. `flash_with_key_rsa_3072.sh` is not used by any entry on this branch. Keep or delete?
+3. Is 20 attempts with a 1 s wait right for the libjlinkarm error?
