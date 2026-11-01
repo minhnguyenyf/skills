@@ -12,13 +12,21 @@ Each skill is a folder with a `SKILL.md` (and optional notes, scripts, or diagra
 
 Clone the repo into `~/.claude/skills`, the path Claude reads skills from:
 
+macOS / Linux:
+
 ```bash
-git clone <skills-repo-url> ~/.claude/skills
+git clone git@github.com:minhnguyenyf/skills.git ~/.claude/skills
 ```
 
-Replace `<skills-repo-url>` with the repo address from your team.
+Windows 11 (PowerShell):
 
-If `~/.claude/skills` already exists as an empty folder, remove it first with `rmdir ~/.claude/skills`, then run the clone.
+```powershell
+git clone git@github.com:minhnguyenyf/skills.git $env:USERPROFILE\.claude\skills
+```
+
+Windows needs SSH access to GitHub (`ssh -T git@github.com` should greet you). Run the auto-commit setup in Git Bash, because `setup.sh` is a bash script.
+
+If `~/.claude/skills` already exists as an empty folder, remove it first with `rmdir ~/.claude/skills` (PowerShell: `Remove-Item $env:USERPROFILE\.claude\skills`), then run the clone.
 
 ### 2. Ask Claude to set up the rules and auto-commit
 
