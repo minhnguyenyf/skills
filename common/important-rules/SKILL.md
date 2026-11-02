@@ -29,7 +29,8 @@ This skill documents critical constraints and policies for working on this proje
 - ✅ **DO fix at project level**: e2 studio include paths, build configurations
 
 ### Read Restrictions
-- ❌ **DO NOT read**: `ra/fsp/src/r_sce/`, `ra/fsp/src/r_rsip_protected/`, `ra/fsp/src/r_sce_protected/` (including their `crypto_procedures` submodule contents). Set by the user; do not use `grep`, `find`, `git show`, or `Read` on these paths, even for a review.
+- ❌ **DO NOT read**: `ra/fsp/src/r_rsip_protected/`, `ra/fsp/src/r_sce_protected/` (including their `crypto_procedures` submodule contents), and any folder named `primitive` under `ra/fsp/src/r_sce/`. Set by the user; do not use `grep`, `find`, `git show`, or `Read` on these paths, even for a review.
+- ✅ **`ra/fsp/src/r_sce/` is readable** except for folders named `primitive`. Other `r_sce` paths (for example `crypto_procedures/src/rsip_e51a/plainkey/...`) may be read and reviewed.
 - ✅ Changes to these paths in a diff (`git diff develop...HEAD`) may be reported by file name and pointer SHA only. Say that the contents were not reviewed.
 - If a review needs something from these paths, say so in the report and ask the user to check it.
 
