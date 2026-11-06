@@ -24,7 +24,14 @@ Windows 11 (PowerShell):
 git clone git@github.com:minhnguyenyf/skills.git $env:USERPROFILE\.claude\skills
 ```
 
-Windows needs SSH access to GitHub (`ssh -T git@github.com` should greet you). Run the auto-commit setup in Git Bash, because `setup.sh` is a bash script.
+Windows needs SSH access to GitHub (`ssh -T git@github.com` should greet you). If SSH is not set up, clone over HTTPS instead: `git clone https://github.com/minhnguyenyf/skills.git ~/.claude/skills`. Pushes then need your GitHub login through Git Credential Manager. Run the auto-commit setup in Git Bash, because `setup.sh` is a bash script.
+
+Set your git identity first, so your commits carry your name:
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your-github-email"
+```
 
 If `~/.claude/skills` already exists as an empty folder, remove it first with `rmdir ~/.claude/skills` (PowerShell: `Remove-Item $env:USERPROFILE\.claude\skills`), then run the clone.
 
@@ -35,10 +42,12 @@ Open Claude Code in the project folder (for example `peaks`) and paste this prom
 ```text
 Read the skills in ~/.claude/skills/common/ (important-rules, auto-commit-skills, knowledge-capture).
 Then run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
-Confirm the hook is installed in ~/.claude/settings.json and that the test in setup.sh passes.
+Confirm the hooks are installed in ~/.claude/settings.json and that the test in setup.sh passes.
 Apply the commit, submodule, and read-restriction rules from important-rules to this project.
 Summarize what you set up and anything you could not verify.
 ```
+
+Restart Claude Code after setup so the hooks load. After that, any prompt that mentions `claude/skills/common` checks the hooks and repairs them if they are missing (this needs `jq`).
 
 See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for details and troubleshooting.
 
@@ -108,7 +117,8 @@ Past code and branch reviews, with verdicts, findings, and merge checklists.
 1. **Load:** a skill's description decides when it's used. Keep descriptions specific, since they drive matching.
 2. **Edit:** changes made with the `Edit` or `Write` tools under `~/.claude/skills/` are committed and pushed to `origin/master` by the `PostToolUse` hook in `~/.claude/settings.json`.
 3. **Other changes:** changes made in Bash, such as `mv` or `rm`, are committed and pushed by the `Stop` hook at the end of each turn.
-4. **Sync:** a `SessionStart` pull is described in the docs but is **not** configured in `settings.json`, so skills do not sync from GitHub at session start yet.
+4. **Self-check:** a `UserPromptSubmit` hook runs when a prompt mentions `claude/skills/common`. It reruns `setup.sh` only if the auto-commit hooks are missing.
+5. **Sync:** `settings.json` has a `SessionStart` hook that runs `git pull origin master` in `~/.claude/skills`. `setup.sh` does not write it, so it stays on machines that had it before.
 
 ---
 
