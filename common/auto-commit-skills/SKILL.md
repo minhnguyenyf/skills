@@ -21,6 +21,7 @@ Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project
 |---|---|---|
 | `PostToolUse` (`Edit\|Write`) | After Edit or Write under `~/.claude/skills/` | That file, `Update skill file: <name>` |
 | `Stop` | End of each turn | All tracked and new changes except `synced/`, `Update skill files` |
+| `UserPromptSubmit` | A prompt mentions `claude/skills/common` | Nothing. Runs `ensure-skills-setup.sh`, which runs `setup.sh` only if a hook or the script is missing |
 
 - The Stop hook covers Bash edits (`cat >>`, `mv`, `rm`). Both hooks do nothing when nothing is staged.
 - Each run commits, then `pull --rebase` on `origin/master`, then pushes. On a rebase conflict the script aborts it; the commit stays local and the log shows `FAILED`.
@@ -30,7 +31,8 @@ Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project
 | File | Purpose |
 |---|---|
 | `commit-skills.sh` | Commit and push logic, POSIX `sh`. Copied to `~/.claude/hooks/`. |
-| `setup.sh` | Copies the script, writes both hooks into `~/.claude/settings.json` (keeps other settings), runs both once. Safe to re-run. |
+| `ensure-skills-setup.sh` | UserPromptSubmit check: repairs missing hooks by running `setup.sh`. Copied to `~/.claude/hooks/`. |
+| `setup.sh` | Copies the scripts, writes the three hooks into `~/.claude/settings.json` (keeps other settings), runs the checks once. Safe to re-run. |
 | `README.md` | Quick start for a new device. |
 
 ## Setup on a new device
