@@ -2,17 +2,19 @@
 
 Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project repos (`/home/coder/workspace/peaks` and others) are never auto-committed.
 
-## Start of every session
-1. Check the hooks are installed:
+## Start of every session (required)
+1. Check both hooks and the script are installed. Expect `2` (PostToolUse and Stop) and `OK`:
    ```bash
-   jq -r '.hooks.PostToolUse[] | select(any(.hooks[]?; (.command // "") | contains("commit-skills.sh"))) | .hooks[0].command' ~/.claude/settings.json
+   jq '[.hooks.PostToolUse[]?, .hooks.Stop[]?] | map(.hooks[]?.command) | map(select(contains("commit-skills.sh"))) | length' ~/.claude/settings.json
+   test -x ~/.claude/hooks/commit-skills.sh && echo OK
    ```
-   Empty output: run `bash ~/.claude/skills/common/auto-commit-skills/setup.sh`.
+   Anything else: run `bash ~/.claude/skills/common/auto-commit-skills/setup.sh` (needs `jq`; on this machine it is in `~/bin/jq.exe`, copied from winget `jqlang.jq`).
 2. Check for uncommitted or unpushed skill changes:
    ```bash
-   cd ~/.claude/skills && git status --short && git log origin/master --oneline -1 && git log --oneline -1
+   cd ~/.claude/skills && git status --short && git fetch -q origin && git log origin/master --oneline -1 && git log --oneline -1
    ```
-3. Check `~/.claude/skill-autocommit.log` for `FAILED` lines.
+3. Check `~/.claude/skill-autocommit.log` for `FAILED` lines. The file appears only after the first commit by the hook, so its absence is not an error by itself.
+4. Report the result to the user in one line before starting other work.
 
 ## How it works
 | Hook | When | Commits |

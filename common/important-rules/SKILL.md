@@ -13,6 +13,10 @@ This skill documents critical constraints and policies for working on this proje
 
 ## Quick Reference
 
+### Session Start: Auto-Commit Hook
+- ✅ **Always** run the start-of-session checks in [auto-commit-skills/SKILL.md](../auto-commit-skills/SKILL.md) at the start of every session, before other work. Confirm both hooks (PostToolUse and Stop) and `~/.claude/hooks/commit-skills.sh` are present, and that the skills repo has no unpushed or uncommitted changes.
+- ❌ If a check fails, fix it (run `setup.sh`) or tell the user before continuing.
+
 ### Git Operations
 - ✅ **Auto-commit to**: `~/.claude/skills/` only
 - ❌ **Never auto-commit to**: `/home/coder/workspace/peaks/` or any work project
