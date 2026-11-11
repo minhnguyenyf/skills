@@ -61,7 +61,7 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 ├── 🥾 mcuboot/       MCUboot port and protected mode
 ├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
-├── 🔍 code-review/   Code and branch review reports
+├── 🔍 code-review/   Review session knowledge
 └── 📄 README.md      This file
 ```
 
@@ -102,13 +102,7 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 
 ## 🔍 `code-review/`
 
-Past code and branch reviews, with verdicts, findings, and merge checklists.
-
-| File | What it covers |
-|---|---|
-| `FSPRA-5831_review.md` | FSPRA-5831 RSIP protected-mode branch review |
-| `FSPRA-6005_review.md` | FSPRA-6005 RSIP-E50D unification review |
-| `FSPRA-5831_flash_script_reply_to_PM.md` | PM reply on flash-key scripts |
+This folder records the knowledge from each review session.
 
 ---
 
