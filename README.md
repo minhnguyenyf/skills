@@ -109,13 +109,7 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 
 ## 🔍 `code-review/`
 
-Knowledge from each review session. Files are named by ticket:
-
-| File | What it covers |
-|---|---|
-| `FSPRA-5831_review.md` | Review findings for FSPRA-5831 |
-| `FSPRA-5831_flash_script_reply_to_PM.md` | Reply to the PM about the flash script (FSPRA-5831) |
-| `FSPRA-6005_review.md` | Review findings for FSPRA-6005 (RSIP-E50D unification) |
+This folder records the knowledge from each review session.
 
 ---
 
@@ -135,6 +129,7 @@ Knowledge from each review session. Files are named by ticket:
 - `ra/arm/mbedtls-v4/` and its `tf-psa-crypto/` are read-only submodules. Fix problems in project config instead.
 - Never hand-edit files listed in `data/collected-files/ddsc-generated.yml`. Change the generator template.
 - Read `common/important-rules` before any git operation.
+- Keep this README simple. Use short sentences, and list only what a reader needs. Don't add change history or long details.
 
 ---
 
