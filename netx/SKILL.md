@@ -40,3 +40,13 @@ description: NetX secure crypto (rm_netx_secure_crypto) calling the SCE/RSIP ada
 - A header may already declare a function with the same signature (sce5b declares `Ecc256` at line 180). Don't add a second copy.
 - Not verified by a build. Generated BSP headers are not in the repo.
 - Related: `psa/mbedtls-v4-migration-notes/mbedtls-v3-notes.md` has the full adaptor coverage table for `rm_psa_crypto`.
+
+## Branch FSPRA-5013_Support_ECC_bp512r1_PSA_NetX (status)
+- Goal: Brainpool P-512 (bp512r1) ECDH and ECDSA in `rm_netx_secure_crypto`. Real support only on RSIP-E51A and RSIP-E50D. Other engines use the stubs above.
+- Macros (`inc/rm_netx_secure_crypto.h`): `P512_CURVE_SIZE_BYTES` = 64. `LARGEST_FORMATTED_ECC_PUBLIC_KEY_WORDS` = 37 on E51A/E50D, else 32. `LARGEST_CURVE_SIZE_BYTES` follows the same split. `ECC_WRAPPED_KEY_SIZE(bits)` maps curves under 256 bits to the 256-bit wrapped size.
+- Public key format: E11A, E31A, E51A and E50D return a plain X||Y key. SCE7 and SCE9 return a formatted key. Branch on `BSP_FEATURE_RSIP_RSIP_E51A/E50D_SUPPORTED`.
+- Key generation for P-512 (`rm_netx_secure_crypto.c`) calls `HW_SCE_GenerateEccP512RandomKeyIndexSubAdaptor` on E51A and E50D only.
+- Tests: `!test/rm_netx_secure_crypto_tests_tg3.c` changed. `!example/rm_netx_secure_crypto_example.c` added (about 187 lines).
+- History (key commits): "Disable bp512r1 for NetX sw since library didn't support", "Modify ECDH max key size for NetX", "Add missing NetX bp512r1 ECDH implement".
+- Uncommitted in the working tree: `nx_crypto_ecdh_alt_process.c` (not part of this note).
+- Open: the link error for `HW_SCE_Ecc512ScalarMultiplicationSubAdaptor` is covered by the stubs. Check the sce5 and sce5b builds before relying on them.
