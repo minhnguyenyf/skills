@@ -61,6 +61,7 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 ├── 🥾 mcuboot/       MCUboot port and protected mode
 ├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
+├── 🌐 netx/          NetX secure crypto and SCE/RSIP adaptor layer
 ├── 🔍 code-review/   Review session knowledge
 └── 📄 README.md      This file
 ```
@@ -72,7 +73,7 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 | Skill | What it covers |
 |---|---|
 | `mbedtlsv4-tf-psa-crypto-integrated` | mbedTLS 4.x and TF-PSA-Crypto integration |
-| `mbedtls-v4-migration-notes` | mbedTLS v3 to v4 migration and PSA storage |
+| `mbedtls-v4-migration-notes` | mbedTLS v3 to v4 migration, PSA storage, and the 3.6.6→4.1.0 changelog. Also `mbedtls-v3-notes.md` for v3-only findings |
 | `cch-psa-driver-scaffold` | PSA driver pattern for `rm_tf_psa_crypto` |
 | `test-case-porting-guide` | Porting test cases between v3 and v4 |
 | `tf-psa-crypto-v4-analysis` | TF-PSA-Crypto v4 heap analysis (not yet verified) |
@@ -91,6 +92,12 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 |---|---|
 | `ocrypto` | Ocrypto library and `rm_ocrypto_port` build |
 
+## 🌐 `netx/`: NetX secure crypto
+
+| Skill | What it covers |
+|---|---|
+| `netx` | `rm_netx_secure_crypto` calling the SCE/RSIP adaptor layer, per-engine stubs, dummy domain parameters, and the FSPRA-5013 bp512r1 status |
+
 ## 🧭 `common/`: rules and tooling
 
 | Skill | What it covers |
@@ -102,7 +109,13 @@ See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for
 
 ## 🔍 `code-review/`
 
-This folder records the knowledge from each review session.
+Knowledge from each review session. Files are named by ticket:
+
+| File | What it covers |
+|---|---|
+| `FSPRA-5831_review.md` | Review findings for FSPRA-5831 |
+| `FSPRA-5831_flash_script_reply_to_PM.md` | Reply to the PM about the flash script (FSPRA-5831) |
+| `FSPRA-6005_review.md` | Review findings for FSPRA-6005 (RSIP-E50D unification) |
 
 ---
 
