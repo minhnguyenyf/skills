@@ -40,10 +40,12 @@ If `~/.claude/skills` already exists as an empty folder, remove it first with `r
 Open Claude Code in any folder and paste this prompt (needs `jq`):
 
 ```text
+Pull the latest skills repo first: git -C ~/.claude/skills pull --rebase origin master
 Read ~/.claude/skills/common/auto-commit-skills/SKILL.md.
 Run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
 Confirm that ~/.claude/settings.json has the PostToolUse, Stop, and UserPromptSubmit hooks, and that the test in setup.sh passes.
 Confirm that ~/.claude/CLAUDE.md contains the block between "auto-commit-skills:start" and "auto-commit-skills:end".
+Check that pushing works: ~/.claude/skill-autocommit.log has no new FAILED lines, and after git -C ~/.claude/skills fetch origin, origin/master matches local HEAD.
 Do not commit or push anything in other repos.
 Summarize what you set up and anything you could not verify. Tell me to restart Claude Code so the hooks load.
 ```
