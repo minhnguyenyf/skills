@@ -35,21 +35,27 @@ git config --global user.email "your-github-email"
 
 If `~/.claude/skills` already exists as an empty folder, remove it first with `rmdir ~/.claude/skills` (PowerShell: `Remove-Item $env:USERPROFILE\.claude\skills`), then run the clone.
 
-### 2. Ask Claude to set up the rules and auto-commit
+### 2. Set up auto-commit
 
-Open Claude Code in the project folder (for example `peaks`) and paste this prompt:
+Run this once per machine (needs `jq`):
 
-```text
-Read the skills in ~/.claude/skills/common/ (important-rules, auto-commit-skills, knowledge-capture).
-Then run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
-Confirm the hooks are installed in ~/.claude/settings.json and that the test in setup.sh passes.
-Apply the commit, submodule, and read-restriction rules from important-rules to this project.
-Summarize what you set up and anything you could not verify.
+```bash
+bash ~/.claude/skills/common/auto-commit-skills/setup.sh
 ```
 
-Restart Claude Code after setup so the hooks load. After that, any prompt that mentions `claude/skills/common` checks the hooks and repairs them if they are missing (this needs `jq`).
+Restart Claude Code afterwards so the hooks load. A prompt that mentions `claude/skills/common` then checks the hooks and repairs them if they are missing.
 
 See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for details and troubleshooting.
+
+### 3. Install the local project rules
+
+Run this once per project repo on each machine. The files it writes stay local and are never committed:
+
+```bash
+bash ~/.claude/skills/common/peaks-project-rules/install.sh ~/workspace/peaks
+```
+
+It writes `CLAUDE.local.md` and `.claude/settings.local.json` in the repo, and hides both from git. Restart Claude Code in that repo afterwards.
 
 ---
 
