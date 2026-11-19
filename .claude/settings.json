@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty'); [ -n \"$f\" ] && sh \"$HOME/.claude/hooks/commit-skills.sh\" \"$f\"; exit 0",
+            "statusMessage": "Committing and pushing skill changes..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$HOME/.claude/hooks/commit-skills.sh\"",
+            "statusMessage": "Committing any skill changes..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$HOME/.claude/hooks/ensure-skills-setup.sh\"",
+            "statusMessage": "Checking skill auto-commit hooks..."
+          }
+        ]
+      }
+    ]
+  }
+}
