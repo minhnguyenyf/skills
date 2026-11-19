@@ -8,13 +8,13 @@ Needs `git`, `jq`, and access to the skills repo (SSH, or HTTPS with a GitHub lo
 
 ```bash
 git clone git@github.com:minhnguyenyf/skills.git ~/.claude/skills    # or the https:// URL; skip if already cloned
-bash ~/.claude/skills/auto-commit-skills/setup.sh
+bash ~/.claude/skills/common/auto-commit-skills/setup.sh
 ```
 
 Setup copies `commit-skills.sh` and `ensure-skills-setup.sh` to `~/.claude/hooks/` and writes three hooks to `~/.claude/settings.json`:
 - **PostToolUse** (Edit or Write): commits and pushes the edited skill file.
 - **Stop** (end of each turn): commits and pushes any other skill changes, including Bash edits.
-- **UserPromptSubmit** (a prompt mentions `claude/skills/auto-commit-skills`): runs `ensure-skills-setup.sh`, which reruns `setup.sh` only if a hook or the script is missing.
+- **UserPromptSubmit** (a prompt mentions `claude/skills/common`): runs `ensure-skills-setup.sh`, which reruns `setup.sh` only if a hook or the script is missing.
 
 Setup is safe to re-run. It replaces the old auto-commit hook entries rather than adding duplicates, and it leaves other settings alone. Restart Claude Code afterwards so the hooks load.
 

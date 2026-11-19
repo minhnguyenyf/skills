@@ -3,7 +3,7 @@
 **Set:** 2026-10-01. Applies to all sessions.
 
 ## Rule
-- **Auto-commit and push only to `~/.claude/skills/`** (hooks: see `auto-commit-skills/SKILL.md`).
+- **Auto-commit and push only to `~/.claude/skills/`** (hooks: see `common/auto-commit-skills/SKILL.md`).
 - **Never auto-commit or push** to project or work repos, such as `/home/coder/workspace/peaks/`, customer code, or any repo outside `~/.claude/skills/`.
 - For project repos: stage or edit, show the diff, and let the user commit and push. Claude does not run `git commit` or `git push` on project work.
 
