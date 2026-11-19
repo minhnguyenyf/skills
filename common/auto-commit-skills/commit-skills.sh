@@ -46,7 +46,8 @@ ahead=$(git rev-list --count origin/master..HEAD 2>/dev/null || echo 0)
 
 # Pull and rebase on top of the remote before pushing, so a teammate's newer commit does not reject the push.
 # If the rebase hits a conflict, abort it: the commits stay local, the log shows FAILED, and the next run retries.
-if git pull -q --rebase origin master >> "$LOG" 2>&1 \
+# --autostash: in single-file mode other files may still have unstaged edits, which would block the rebase.
+if git pull -q --rebase --autostash origin master >> "$LOG" 2>&1 \
   && git push -q origin master >> "$LOG" 2>&1; then
   echo "$(date) OK $label ($ahead commit(s) pushed)" >> "$LOG"
 else
