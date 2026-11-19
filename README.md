@@ -42,12 +42,13 @@ Open Claude Code in any folder and paste this prompt (needs `jq`):
 ```text
 Read ~/.claude/skills/common/auto-commit-skills/SKILL.md.
 Run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
-Confirm both hooks (PostToolUse and Stop) and UserPromptSubmit are in ~/.claude/settings.json, and that the test in setup.sh passes.
+Confirm that ~/.claude/settings.json has the PostToolUse, Stop, and UserPromptSubmit hooks, and that the test in setup.sh passes.
+Confirm that ~/.claude/CLAUDE.md contains the block between "auto-commit-skills:start" and "auto-commit-skills:end".
 Do not commit or push anything in other repos.
-Summarize what you set up and anything you could not verify, and tell me to restart Claude Code so the hooks load.
+Summarize what you set up and anything you could not verify. Tell me to restart Claude Code so the hooks load.
 ```
 
-Restart Claude Code afterwards so the hooks load. A prompt that mentions `claude/skills/common` then checks the hooks and repairs them if they are missing.
+Restart Claude Code afterwards so the hooks load. The `~/.claude/CLAUDE.md` block tells Claude to commit and push skill changes itself. This works even when the hooks don't run, for example in the VS Code session.
 
 See [common/auto-commit-skills/SKILL.md](common/auto-commit-skills/SKILL.md) for details and troubleshooting.
 
