@@ -15,7 +15,7 @@ When you look into MCUboot, mbedTLS v3, mbedTLS v4, or TF-PSA-Crypto in this rep
 |---|---|
 | MCUboot port, RSIP or SCE9 protected mode, flash map, OSPI or QSPI, key install | `~/.claude/skills/mcuboot/` (use an existing skill folder, or create `mcuboot/<topic>/SKILL.md`) |
 | mbedTLS v3 to v4 diffs, TF-PSA-Crypto, PSA storage, littlefs | `~/.claude/skills/psa/` (use `mbedtls-v4-migration-notes/` or create `psa/<topic>/SKILL.md`) |
-| Repo-wide rules, commit policy, tooling | `~/.claude/skills/common/` |
+| Repo-wide rules, commit policy, tooling | `~/.claude/skills/` |
 
 Check the folder for an existing note on the topic before you write a new one. Update that note instead of making a duplicate.
 
@@ -52,4 +52,4 @@ Read the matching skill folder first. If the answer is there, use it, and check 
 
 ## Saving
 
-Skills repo edits are committed and pushed to `origin/master`. If the auto-commit hook did not fire, commit and push by hand, as described in `common/auto-commit-skills/SKILL.md`.
+Skills repo edits are committed and pushed to `origin/master`. If the auto-commit hook did not fire, commit and push by hand, as described in `auto-commit-skills/SKILL.md`.

@@ -3,9 +3,9 @@
 # Installs commit-skills.sh into ~/.claude/hooks and wires two hooks into ~/.claude/settings.json:
 #   PostToolUse (Edit|Write) -> commit and push the edited skill file
 #   Stop                     -> commit and push any other skill changes (Bash edits, mv, rm)
-#   UserPromptSubmit         -> when a prompt mentions claude/skills/common, install these hooks if missing
+#   UserPromptSubmit         -> when a prompt mentions claude/skills/auto-commit-skills, install these hooks if missing
 # Safe to re-run: old auto-commit entries are replaced, not duplicated.
-# Usage: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
+# Usage: bash ~/.claude/skills/auto-commit-skills/setup.sh
 
 set -e
 

@@ -1,12 +1,12 @@
 #!/bin/sh
-# UserPromptSubmit hook: when a prompt mentions claude/skills/common, make sure the
+# UserPromptSubmit hook: when a prompt mentions claude/skills/auto-commit-skills, make sure the
 # auto-commit hooks are installed. Runs setup.sh only if something is missing.
 # Idempotent and never blocks the prompt: always exits 0. Its output is shown to Claude.
 # Installed and wired by setup.sh (command: sh "$HOME/.claude/hooks/ensure-skills-setup.sh").
 
 SETTINGS="$HOME/.claude/settings.json"
 HOOK="$HOME/.claude/hooks/commit-skills.sh"
-SETUP="$HOME/.claude/skills/common/auto-commit-skills/setup.sh"
+SETUP="$HOME/.claude/skills/auto-commit-skills/setup.sh"
 LOG="$HOME/.claude/skill-autocommit.log"
 
 input=$(cat)
@@ -15,7 +15,7 @@ command -v jq >/dev/null 2>&1 || { echo "ensure-skills-setup: jq not found, auto
 
 prompt=$(printf '%s' "$input" | jq -r '.prompt // empty' 2>/dev/null)
 case "$prompt" in
-  *claude/skills/common*) ;;
+  *claude/skills/auto-commit-skills*) ;;
   *) exit 0 ;;
 esac
 

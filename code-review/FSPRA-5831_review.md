@@ -45,4 +45,4 @@
 - No build (gcc, llvm, ac6, iar), no hardware run.
 - The 552-file diff was not read line by line. The RSIP CAVP tree (`ra/fsp/src/r_rsip_e11a_protected_cavp/!test/`) was only listed.
 - `crypto_procedures_protected` commit not reviewed.
-- Per the read restrictions in `common/important-rules`, `r_sce*` and `r_rsip_protected` contents were not read. Ask the user to check them.
+- Per the read restrictions in `important-rules`, `r_sce*` and `r_rsip_protected` contents were not read. Ask the user to check them.

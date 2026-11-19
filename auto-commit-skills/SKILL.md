@@ -8,7 +8,7 @@ Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project
    jq '[.hooks.PostToolUse[]?, .hooks.Stop[]?] | map(.hooks[]?.command) | map(select(contains("commit-skills.sh"))) | length' ~/.claude/settings.json
    test -x ~/.claude/hooks/commit-skills.sh && echo OK
    ```
-   Anything else: run `bash ~/.claude/skills/common/auto-commit-skills/setup.sh` (needs `jq`; on this machine it is in `~/bin/jq.exe`, copied from winget `jqlang.jq`).
+   Anything else: run `bash ~/.claude/skills/auto-commit-skills/setup.sh` (needs `jq`; on this machine it is in `~/bin/jq.exe`, copied from winget `jqlang.jq`).
 2. Check for uncommitted or unpushed skill changes:
    ```bash
    cd ~/.claude/skills && git status --short && git fetch -q origin && git log origin/master --oneline -1 && git log --oneline -1
@@ -21,7 +21,7 @@ Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project
 |---|---|---|
 | `PostToolUse` (`Edit\|Write`) | After Edit or Write under `~/.claude/skills/` | That file, `Update skill file: <name>` |
 | `Stop` | End of each turn | All tracked and new changes except `synced/`, `Update skill files` |
-| `UserPromptSubmit` | A prompt mentions `claude/skills/common` | Nothing. Runs `ensure-skills-setup.sh`, which runs `setup.sh` only if a hook or the script is missing |
+| `UserPromptSubmit` | A prompt mentions `claude/skills/auto-commit-skills` | Nothing. Runs `ensure-skills-setup.sh`, which runs `setup.sh` only if a hook or the script is missing |
 
 - The Stop hook covers Bash edits (`cat >>`, `mv`, `rm`). Both hooks do nothing when nothing is staged.
 - Each run commits, then `pull --rebase` on `origin/master`, then pushes. On a rebase conflict the script aborts it; the commit stays local and the log shows `FAILED`.
@@ -39,7 +39,7 @@ Commits and pushes changes under `~/.claude/skills/` to `origin/master`. Project
 Prerequisites: `git`, `jq`, SSH access, `~/.claude/skills/` cloned.
 ```bash
 git clone <skills repo URL> ~/.claude/skills        # skip if present
-bash ~/.claude/skills/common/auto-commit-skills/setup.sh
+bash ~/.claude/skills/auto-commit-skills/setup.sh
 ```
 Hooks are per device (`~/.claude/settings.json`). Skill files sync through git.
 

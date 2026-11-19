@@ -2,7 +2,7 @@
 # Install local-only Claude Code rules for the peaks repo on this device.
 # Writes CLAUDE.local.md and .claude/settings.local.json, and hides both from git
 # via .git/info/exclude (never committed). Safe to re-run.
-# Usage: bash ~/.claude/skills/common/peaks-project-rules/install.sh [repo_path]
+# Usage: bash ~/.claude/skills/peaks-project-rules/install.sh [repo_path]
 
 set -e
 
