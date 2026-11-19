@@ -37,10 +37,14 @@ If `~/.claude/skills` already exists as an empty folder, remove it first with `r
 
 ### 2. Set up auto-commit
 
-Run this once per machine (needs `jq`):
+Open Claude Code in any folder and paste this prompt (needs `jq`):
 
-```bash
-bash ~/.claude/skills/common/auto-commit-skills/setup.sh
+```text
+Read ~/.claude/skills/common/auto-commit-skills/SKILL.md.
+Run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
+Confirm both hooks (PostToolUse and Stop) and UserPromptSubmit are in ~/.claude/settings.json, and that the test in setup.sh passes.
+Do not commit or push anything in other repos.
+Summarize what you set up and anything you could not verify, and tell me to restart Claude Code so the hooks load.
 ```
 
 Restart Claude Code afterwards so the hooks load. A prompt that mentions `claude/skills/common` then checks the hooks and repairs them if they are missing.
