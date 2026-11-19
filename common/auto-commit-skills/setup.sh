@@ -54,6 +54,21 @@ mv "$TEMP" "$SETTINGS_FILE"
 
 echo "Hooks written to $SETTINGS_FILE"
 
+# Install the personal rules block into ~/.claude/CLAUDE.md (loaded every session, survives compaction).
+# Replaces the block between the markers if present, otherwise appends it. Other content is kept.
+USER_MD="$HOME/.claude/CLAUDE.md"
+BLOCK_SRC="$SRC_DIR/CLAUDE.block.md"
+MARK_START="<!-- auto-commit-skills:start -->"
+MARK_END="<!-- auto-commit-skills:end -->"
+[ -f "$USER_MD" ] || : > "$USER_MD"
+TEMP=$(mktemp)
+awk -v s="$MARK_START" -v e="$MARK_END" '$0==s{skip=1;next} $0==e{skip=0;next} !skip' "$USER_MD" > "$TEMP"
+# Keep a blank line between existing content and the block.
+[ -s "$TEMP" ] && echo >> "$TEMP"
+cat "$BLOCK_SRC" >> "$TEMP"
+mv "$TEMP" "$USER_MD"
+echo "Rules block written to $USER_MD"
+
 # Quick check: the PostToolUse command must extract the path and run the script without errors.
 echo '{"tool_input":{"file_path":"'"$HOME"'/.claude/skills/README.md"}}' | sh -c "$POST_CMD" && echo "PostToolUse check passed"
 sh "$HOOK_SCRIPT" && echo "Stop check passed"
