@@ -40,12 +40,12 @@ If `~/.claude/skills` already exists as an empty folder, remove it first with `r
 Open Claude Code in any folder and paste this prompt (needs `jq`):
 
 ```text
-Pull the latest skills repo first: git -C ~/.claude/skills pull --rebase origin master
+Pull the latest skills repo first: git -C ~/.claude/skills pull --rebase
 Read ~/.claude/skills/common/auto-commit-skills/SKILL.md.
 Run the auto-commit setup: bash ~/.claude/skills/common/auto-commit-skills/setup.sh
 Confirm that ~/.claude/settings.json has the PostToolUse, Stop, and UserPromptSubmit hooks, and that the test in setup.sh passes.
 Confirm that ~/.claude/CLAUDE.md contains the block between "auto-commit-skills:start" and "auto-commit-skills:end".
-Check that pushing works: ~/.claude/skill-autocommit.log has no new FAILED lines, and after git -C ~/.claude/skills fetch origin, origin/master matches local HEAD.
+Check that pushing works: ~/.claude/skill-autocommit.log has no new FAILED lines, and after git -C ~/.claude/skills fetch origin, origin/<current branch> matches local HEAD.
 Do not commit or push anything in other repos.
 Summarize what you set up and anything you could not verify. Tell me to restart Claude Code so the hooks load.
 ```
@@ -136,7 +136,7 @@ This folder records the knowledge from each review session.
 ## ⚡ How it works
 
 1. **Load:** a skill's description decides when it's used. Keep descriptions specific, since they drive matching.
-2. **Edit:** changes made with the `Edit` or `Write` tools under `~/.claude/skills/` are committed and pushed to `origin/master` by the `PostToolUse` hook in `~/.claude/settings.json`.
+2. **Edit:** changes made with the `Edit` or `Write` tools under `~/.claude/skills/` are committed and pushed to the checked-out branch by the `PostToolUse` hook in `~/.claude/settings.json`.
 3. **Other changes:** changes made in Bash, such as `mv` or `rm`, are committed and pushed by the `Stop` hook at the end of each turn.
 4. **Self-check:** a `UserPromptSubmit` hook runs when a prompt mentions `claude/skills/common`. It reruns `setup.sh` only if the auto-commit hooks are missing.
 5. **Sync:** `settings.json` has a `SessionStart` hook that runs `git pull origin master` in `~/.claude/skills`. `setup.sh` does not write it, so it stays on machines that had it before.
@@ -158,7 +158,7 @@ This folder records the knowledge from each review session.
 ```bash
 cd ~/.claude/skills && git log --oneline -3          # recent skill commits
 git status --short                                    # uncommitted skill changes
-git log origin/master --oneline -1                    # should match local HEAD after a push
+git log origin/$(git branch --show-current) --oneline -1   # should match local HEAD after a push
 ```
 
 ---
