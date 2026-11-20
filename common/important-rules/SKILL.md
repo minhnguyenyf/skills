@@ -43,7 +43,7 @@ This skill documents critical constraints and policies for working on this proje
 - ✅ Ticket numbers (FSPRA-xxxx) and project names are fine to keep.
 
 ### Compact Skill Files
-- ✅ Keep every skill file (`.md`) compact: status and knowledge only. Remove error logs, debugging narratives, resolved issues, and superseded notes. Full details stay in git history.
+- ✅ Always write every skill file (`.md`) as compact as possible: status and knowledge only, short sentences, no filler. Remove error logs, debugging narratives, resolved issues, and superseded notes. Full details stay in git history.
 - Rule details and checklist: [knowledge-capture/SKILL.md](../knowledge-capture/SKILL.md) ("Keep skill files compact").
 
 ## When to Use This Skill

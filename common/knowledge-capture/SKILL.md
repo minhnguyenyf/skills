@@ -33,7 +33,7 @@ Keep notes short. Use exact file paths and symbol names, so a future session can
 
 ## Keep skill files compact
 
-Skill files are read at the start of every session, so every extra line costs tokens. Record only:
+Always write skill files as compact as possible. They are read at the start of every session, so every extra line costs tokens. Record only:
 - **Status:** what is done, what is open, and what was verified.
 - **Knowledge:** facts, file paths, symbol names, device and config mappings, and rules to follow.
 
