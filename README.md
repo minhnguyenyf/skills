@@ -75,7 +75,7 @@ It writes `CLAUDE.local.md` and `.claude/settings.local.json` in the repo, and h
 ├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
 ├── 🌐 netx/          NetX secure crypto and SCE/RSIP adaptor layer
-├── 🔍 code-review/   Review session knowledge
+├── 🔍 common/code-review/   Review session knowledge (under common/)
 └── 📄 README.md      This file
 ```
 
@@ -120,7 +120,7 @@ It writes `CLAUDE.local.md` and `.claude/settings.local.json` in the repo, and h
 | `budget-optimization` | Token spend and model choice |
 | `knowledge-capture` | Saving MCUboot and mbedTLS findings |
 
-## 🔍 `code-review/`
+## 🔍 `common/code-review/`
 
 This folder records the knowledge from each review session.
 

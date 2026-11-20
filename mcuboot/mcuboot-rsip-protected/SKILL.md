@@ -46,7 +46,7 @@ Status: compacted 2026-11-01. Verify line numbers on the branch before use. Reso
 - Not yet run against RFP or hardware.
 
 ## Process
-- Review reports: `~/.claude/skills/code-review/` (`FSPRA-5831_review.md`, `FSPRA-5831_flash_script_reply_to_PM.md`).
+- Review reports: `~/.claude/skills/common/code-review/` (`FSPRA-5831_review.md`, `FSPRA-5831_flash_script_reply_to_PM.md`).
 - Project repo commits are made by the user. Skills repo edits are committed by the hooks.
 - The `boot_rsa` project type was removed in `9a88f39b796`. Use the `ra8m1_ek_rsip_e51a_protected_*` projects.
 

@@ -206,7 +206,7 @@ Compare the `tf-psa-crypto-1.1.0` and `tf-psa-crypto-1.1.1` tags (the plain `v1.
 - Hang on ra6m3 (software RSA-2048 keygen, `TC_API_RSAEncryptDecryptPKCS1V15`): the 1.1.1 small-prime check (`bignum.c`, `mbedtls_mpi_is_prime_ext`) uses one GCD against a 1380-bit product per candidate. It came from commit `4fc9e8e02` (a side-channel fix). Slower on Cortex-M4. Not yet measured.
 
 ## 32. RSIP-E50D unification (FSPRA-6005)
-The E50D devices (RA8P1, RA8M2, RA8D2, RA8T2) follow the E51A code paths in the PSA alt-process, netx and key-injection code. E50D driver signatures are in restricted paths and are not verified. See `code-review/FSPRA-6005_review.md`, item 2.1.
+The E50D devices (RA8P1, RA8M2, RA8D2, RA8T2) follow the E51A code paths in the PSA alt-process, netx and key-injection code. E50D driver signatures are in restricted paths and are not verified. See `common/code-review/FSPRA-6005_review.md`, item 2.1.
 
 ## 33. Device map and stack availability
 Source: `BSP_FEATURE_*` in each MCU's `bsp_feature.h`, and `interface.driver.sce` providers under `r_sce/.module_descriptions/`.
