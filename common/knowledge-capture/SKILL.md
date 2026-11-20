@@ -55,4 +55,4 @@ Read the matching skill folder first. If the answer is there, use it, and check 
 
 ## Saving
 
-Skills repo edits are committed and pushed to `origin/master`. If the auto-commit hook did not fire, commit and push by hand, as described in `common/auto-commit-skills/SKILL.md`.
+Skills repo edits are committed and pushed to the checked-out branch (`origin/<branch>`). If the auto-commit hook did not fire, commit and push by hand, as described in `common/auto-commit-skills/SKILL.md`.

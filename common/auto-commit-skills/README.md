@@ -22,7 +22,7 @@ Setup is safe to re-run. It replaces the old auto-commit hook entries rather tha
 
 ```bash
 cd ~/.claude/skills && git log --oneline -1          # latest commit
-git log origin/master --oneline -1                   # should match
+git log origin/$(git branch --show-current) --oneline -1   # should match
 tail ~/.claude/skill-autocommit.log                  # OK or FAILED lines
 ```
 
