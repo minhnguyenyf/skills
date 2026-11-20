@@ -1,13 +1,13 @@
 ---
 name: knowledge-capture
-description: Rule for saving what you learn about MCUboot, mbedTLS v3/v4, or TF-PSA-Crypto into the matching skill folder, so future sessions don't re-investigate. Use whenever you read source, debug, or verify something about these libraries in this repo.
+description: Rule for saving what you learn about MCUboot, mbedTLS v3/v4, TF-PSA-Crypto, NetX secure crypto, TinyCrypt, or Ocrypto into the matching skill folder, so future sessions don't re-investigate. Use whenever you read source, debug, or verify something about these libraries in this repo.
 metadata:
   type: feedback
 ---
 
-# Knowledge capture for MCUboot and mbedTLS work
+# Knowledge capture for MCUboot, mbedTLS, NetX, TinyCrypt, and Ocrypto work
 
-When you look into MCUboot, mbedTLS v3, mbedTLS v4, or TF-PSA-Crypto in this repo, write what you learned to the matching skill folder in the same turn. Don't leave it for a summary at the end.
+When you look into MCUboot, mbedTLS v3, mbedTLS v4, TF-PSA-Crypto, NetX secure crypto, TinyCrypt, or Ocrypto in this repo, write what you learned to the matching skill folder in the same turn. Don't leave it for a summary at the end.
 
 ## Where to write
 
@@ -15,6 +15,9 @@ When you look into MCUboot, mbedTLS v3, mbedTLS v4, or TF-PSA-Crypto in this rep
 |---|---|
 | MCUboot port, RSIP or SCE9 protected mode, flash map, OSPI or QSPI, key install | `~/.claude/skills/mcuboot/` (use an existing skill folder, or create `mcuboot/<topic>/SKILL.md`) |
 | mbedTLS v3 to v4 diffs, TF-PSA-Crypto, PSA storage, littlefs | `~/.claude/skills/psa/` (use `mbedtls-v4-migration-notes/` or create `psa/<topic>/SKILL.md`) |
+| NetX secure crypto, SCE/RSIP adaptor layer, `rm_netx_secure_crypto`, per-engine stubs | `~/.claude/skills/netx/` (use `netx/SKILL.md`, or create `netx/<topic>/SKILL.md`) |
+| Oberon Ocrypto library, `rm_ocrypto_port` build | `~/.claude/skills/ocrypto/` (use the existing folder, or create `ocrypto/<topic>/SKILL.md`) |
+| TinyCrypt port, `rm_tinycrypt_port`, TRNG, deprecated names | `~/.claude/skills/tinycrypt/` (no folder yet: create `tinycrypt/SKILL.md` on the first note) |
 | Repo-wide rules, commit policy, tooling | `~/.claude/skills/common/` |
 
 Check the folder for an existing note on the topic before you write a new one. Update that note instead of making a duplicate.
