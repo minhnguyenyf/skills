@@ -75,6 +75,7 @@ It writes `CLAUDE.local.md` and `.claude/settings.local.json` in the repo, and h
 ├── 🧭 common/        Project rules, commit policy, tooling
 ├── 🔧 ocrypto/       Oberon Ocrypto library and rm_ocrypto_port build
 ├── 🌐 netx/          NetX secure crypto and SCE/RSIP adaptor layer
+├── 🔐 tinycrypt/     TinyCrypt port: API names, deprecated wrappers, TRNG
 ├── 🔍 common/code-review/   Review session knowledge (under common/)
 └── 📄 README.md      This file
 ```
@@ -110,6 +111,12 @@ It writes `CLAUDE.local.md` and `.claude/settings.local.json` in the repo, and h
 | Skill | What it covers |
 |---|---|
 | `netx` | `rm_netx_secure_crypto` calling the SCE/RSIP adaptor layer, per-engine stubs, dummy domain parameters, and the FSPRA-5013 bp512r1 status |
+
+## 🔐 `tinycrypt/`: TinyCrypt port
+
+| Skill | What it covers |
+|---|---|
+| `tinycrypt` | `rm_tinycrypt_port` API names, deprecated `RM_TINCYRYPT_PORT_*` wrappers, TRNG, compat test, and release note |
 
 ## 🧭 `common/`: rules and tooling
 
